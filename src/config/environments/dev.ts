@@ -1,7 +1,7 @@
 import type { AppConfig } from '@/lib/utils/configLoader';
 
 export const devConfig: AppConfig = {
-  apiBaseUrl: 'https://gm-aicg-guidance-dev-api.azurewebsites.net',
+  apiBaseUrl: 'https://kvm-aicg.onrender.com',
   environment: 'development',
   auth: {
     clientId: 'firebase-dev',
