@@ -1,6 +1,17 @@
 import { useMemo, useState } from 'react';
 
-import { Button, Center, Container, Loader, Modal, SimpleGrid, Stack, Text, Title, useMantineTheme } from '@mantine/core';
+import {
+  Button,
+  Center,
+  Container,
+  Loader,
+  Modal,
+  SimpleGrid,
+  Stack,
+  Text,
+  Title,
+  useMantineTheme,
+} from '@mantine/core';
 import { motion } from 'framer-motion';
 
 import { ListPageLayout } from '@/components/list-page/ListPageLayout';
@@ -164,63 +175,69 @@ export const LearningPathPage: React.FC = () => {
             />
           }
         >
-        <Stack gap="lg">
-          {filteredPaths.length > 0 ? (
-            <SimpleGrid cols={{ base: 1, md: 2, lg: 3 }} spacing="lg">
-              {filteredPaths.map((path, index) => {
-                const guidance = guidancesData?.find((g: any) => g.id.toString() === path.$id);
-                return (
-                  <PathCard key={path.$id} path={path} onDelete={handleDeletePath} index={index} guidance={guidance} />
-                );
-              })}
-            </SimpleGrid>
-          ) : (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5 }}
-              style={{
-                background: `rgba(255, 255, 255, 0.05)`,
-                backdropFilter: 'blur(10px)',
-                border: `1px solid rgba(255, 255, 255, 0.1)`,
-                borderRadius: '16px',
-                padding: '48px 24px',
-                textAlign: 'center',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
-              }}
-            >
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-                <Title
-                  order={3}
-                  mb="xs"
-                  style={{
-                    color: theme.colors[theme.primaryColor]?.[6] || theme.primaryColor,
-                  }}
-                >
-                  No Learning Paths Found
-                </Title>
-                <Text mb="lg" style={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-                  Create your first learning path to get started
-                </Text>
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Button
-                    onClick={handleCreatePath}
+          <Stack gap="lg">
+            {filteredPaths.length > 0 ? (
+              <SimpleGrid cols={{ base: 1, md: 2, lg: 3 }} spacing="lg">
+                {filteredPaths.map((path, index) => {
+                  const guidance = guidancesData?.find((g: any) => g.id.toString() === path.$id);
+                  return (
+                    <PathCard
+                      key={path.$id}
+                      path={path}
+                      onDelete={handleDeletePath}
+                      index={index}
+                      guidance={guidance}
+                    />
+                  );
+                })}
+              </SimpleGrid>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5 }}
+                style={{
+                  background: `rgba(255, 255, 255, 0.05)`,
+                  backdropFilter: 'blur(10px)',
+                  border: `1px solid rgba(255, 255, 255, 0.1)`,
+                  borderRadius: '16px',
+                  padding: '48px 24px',
+                  textAlign: 'center',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+                }}
+              >
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+                  <Title
+                    order={3}
+                    mb="xs"
                     style={{
-                      backgroundColor: theme.colors[theme.primaryColor]?.[6] || theme.primaryColor,
-                      color: 'white',
+                      color: theme.colors[theme.primaryColor]?.[6] || theme.primaryColor,
                     }}
                   >
-                    Create Path
-                  </Button>
+                    No Learning Paths Found
+                  </Title>
+                  <Text mb="lg" style={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                    Create your first learning path to get started
+                  </Text>
+                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <Button
+                      onClick={handleCreatePath}
+                      style={{
+                        backgroundColor: theme.colors[theme.primaryColor]?.[6] || theme.primaryColor,
+                        color: 'white',
+                      }}
+                    >
+                      Create Path
+                    </Button>
+                  </motion.div>
                 </motion.div>
               </motion.div>
-            </motion.div>
-          )}
-        </Stack>
+            )}
+          </Stack>
         </ListPageLayout>
-        </Container>
-        </>
-        );
-        };
+      </Container>
+    </>
+  );
+};
 
 export default LearningPathPage;

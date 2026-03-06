@@ -2,7 +2,8 @@ import { useEffect } from 'react';
 
 import { Button, Checkbox, Group, Slider, Stack, Text, useMantineColorScheme, useMantineTheme } from '@mantine/core';
 import { usePDF } from '@react-pdf/renderer';
-import { IconDownload, IconSearch } from '@tabler/icons-react';
+import { IconDownload, IconEye, IconSearch } from '@tabler/icons-react';
+import { useNavigate } from 'react-router-dom';
 
 import { useSetDefaultScale } from '@/components/Resume/hooks';
 
@@ -20,6 +21,7 @@ const ResumeControlBar = ({
   fileName: string;
 }) => {
   const theme = useMantineTheme();
+  const navigate = useNavigate();
   const { colorScheme } = useMantineColorScheme();
   const { scaleOnResize, setScaleOnResize } = useSetDefaultScale({
     setScale,
@@ -32,6 +34,10 @@ const ResumeControlBar = ({
   useEffect(() => {
     update(document as any);
   }, [document, update]);
+
+  const handlePreview = () => {
+    navigate('/resume-preview');
+  };
 
   return (
     <Group
@@ -64,6 +70,9 @@ const ResumeControlBar = ({
         </Text>
         <Checkbox label="Autoscale" checked={scaleOnResize} onChange={() => setScaleOnResize((prev) => !prev)} />
       </Group>
+      <Button leftSection={<IconEye size={18} />} variant="default" onClick={handlePreview}>
+        Preview
+      </Button>
       <Button
         leftSection={<IconDownload size={18} />}
         component="a"

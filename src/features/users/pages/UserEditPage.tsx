@@ -3,6 +3,7 @@ import { IconAlertCircle, IconArrowLeft } from '@tabler/icons-react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { ListPageLayout } from '@/components/list-page/ListPageLayout';
+
 import { useGetSkillGapsByUser } from '../api/skillGaps/useGetSkillGapsByUser';
 import { useGetUserProfileByUser } from '../api/userProfiles/useGetUserProfileByUser';
 import { useGetUser } from '../api/users/useGetUser';

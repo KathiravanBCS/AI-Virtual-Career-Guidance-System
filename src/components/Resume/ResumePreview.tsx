@@ -1,6 +1,16 @@
 import { memo, useCallback, useMemo, useState } from 'react';
 
-import { Box, Button, Group, NumberInput, Text, Tooltip, useMantineColorScheme, useMantineTheme } from '@mantine/core';
+import {
+  Box,
+  Button,
+  Group,
+  NumberInput,
+  ScrollArea,
+  Text,
+  Tooltip,
+  useMantineColorScheme,
+  useMantineTheme,
+} from '@mantine/core';
 import {
   IconArrowLeft,
   IconArrowRight,
@@ -80,7 +90,7 @@ const ResumePreviewContent = () => {
     <>
       <NonEnglishFontsCSSLazyLoader />
       <Box
-        h="100vh"
+        h="80vh"
         display="flex"
         style={{ flexDirection: 'column' }}
         bg={colorScheme === 'dark' ? theme.colors.dark[7] : theme.colors.gray[0]}
@@ -215,13 +225,13 @@ const ResumePreviewContent = () => {
         </Box>
 
         {/* Resume Preview Container */}
-        <Box
+        <ScrollArea
           style={{
             flex: 1,
-            overflow: 'auto',
             width: '100%',
             backgroundColor: colorScheme === 'dark' ? theme.colors.dark[6] : 'white',
           }}
+          scrollbarSize={8}
         >
           <ResumeIframeCSR
             documentSize={settings.documentSize}
@@ -231,7 +241,7 @@ const ResumePreviewContent = () => {
           >
             <ResumePDFWrapper resume={resume} settings={settings} />
           </ResumeIframeCSR>
-        </Box>
+        </ScrollArea>
       </Box>
     </>
   );

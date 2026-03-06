@@ -172,133 +172,135 @@ export const FlashcardGenerator: React.FC = () => {
         titleProps={{ fw: 700, size: 'h2' }}
         description="Select your learning path and module to create AI-powered flashcards"
       >
-      <Stack gap="lg">
-        {/* Controls */}
-        <Paper
-          p="lg"
-          radius="lg"
-          withBorder
-          style={{
-            backgroundColor: colorScheme === 'dark' ? theme.colors.dark[7] : theme.white,
-            borderColor: theme.colors.gray[colorScheme === 'dark' ? 7 : 2],
-          }}
-        >
-          <Stack gap="md">
-            {/* Select Learning Path */}
-            <Box>
-              <Text fw={500} mb="xs">
-                Select Learning Path
-              </Text>
-              <Select
-                placeholder="Choose your learning path"
-                data={guidanceOptions}
-                value={selectedGuidanceId ? String(selectedGuidanceId) : null}
-                onChange={handleGuidanceChange}
-                clearable
-                searchable
-              />
-            </Box>
-
-            {/* Select Module */}
-            {selectedGuidance && modules.length > 0 && (
+        <Stack gap="lg">
+          {/* Controls */}
+          <Paper
+            p="lg"
+            radius="lg"
+            withBorder
+            style={{
+              backgroundColor: colorScheme === 'dark' ? theme.colors.dark[7] : theme.white,
+              borderColor: theme.colors.gray[colorScheme === 'dark' ? 7 : 2],
+            }}
+          >
+            <Stack gap="md">
+              {/* Select Learning Path */}
               <Box>
                 <Text fw={500} mb="xs">
-                  Select Module
+                  Select Learning Path
                 </Text>
                 <Select
-                  placeholder="Choose a module"
-                  data={moduleOptions}
-                  value={selectedModuleId ? String(selectedModuleId) : null}
-                  onChange={handleModuleChange}
+                  placeholder="Choose your learning path"
+                  data={guidanceOptions}
+                  value={selectedGuidanceId ? String(selectedGuidanceId) : null}
+                  onChange={handleGuidanceChange}
                   clearable
                   searchable
-                  disabled={modules.length === 0}
                 />
               </Box>
-            )}
-            {selectedGuidance && modules.length === 0 && (
-              <Alert icon={<IconAlertCircle size={16} />} title="No Modules" color="yellow">
-                This learning path has no modules yet.
-              </Alert>
-            )}
 
-            {/* Flashcard Topic */}
-            {selectedModule && (
-              <Box>
-                <Text fw={500} mb="xs">
-                  Flashcard Topic
-                </Text>
-                <Paper
-                  p="sm"
-                  withBorder
-                  style={{
-                    backgroundColor:
-                      colorScheme === 'dark'
-                        ? theme.colors[theme.primaryColor][9]
-                        : theme.colors[theme.primaryColor][0],
-                    borderColor: theme.colors[theme.primaryColor][3],
-                  }}
-                >
-                  <Text
-                    c={
-                      colorScheme === 'dark' ? theme.colors[theme.primaryColor][2] : theme.colors[theme.primaryColor][7]
-                    }
-                  >
-                    {flashcardTopic}
+              {/* Select Module */}
+              {selectedGuidance && modules.length > 0 && (
+                <Box>
+                  <Text fw={500} mb="xs">
+                    Select Module
                   </Text>
-                </Paper>
-              </Box>
-            )}
-
-            {/* Number of Cards */}
-            {selectedModule && (
-              <Box>
-                <Text fw={500} mb="xs">
-                  Number of Cards
-                </Text>
-                <Select
-                  placeholder="Select number of cards"
-                  data={['3', '5', '10', '15', '20'].map((num) => ({ value: num, label: num }))}
-                  value={String(numCards)}
-                  onChange={(val) => setNumCards(Number(val))}
-                />
-              </Box>
-            )}
-
-            {/* Error Alert */}
-            {error && (
-              <Alert icon={<IconAlertCircle size={16} />} title="Error" color="red">
-                {error}
-              </Alert>
-            )}
-
-            {/* Action Buttons */}
-            <Group justify="flex-end">
-              <Button variant="default" onClick={handleStartOver}>
-                Clear
-              </Button>
-              {selectedModule && (
-                <Button
-                  color={theme.primaryColor}
-                  onClick={handleGenerateCards}
-                  loading={loading}
-                  disabled={!flashcardTopic.trim() || numCards < 1}
-                >
-                  Generate Cards
-                </Button>
+                  <Select
+                    placeholder="Choose a module"
+                    data={moduleOptions}
+                    value={selectedModuleId ? String(selectedModuleId) : null}
+                    onChange={handleModuleChange}
+                    clearable
+                    searchable
+                    disabled={modules.length === 0}
+                  />
+                </Box>
               )}
-            </Group>
-          </Stack>
-        </Paper>
+              {selectedGuidance && modules.length === 0 && (
+                <Alert icon={<IconAlertCircle size={16} />} title="No Modules" color="yellow">
+                  This learning path has no modules yet.
+                </Alert>
+              )}
 
-        {/* Loading State */}
-        {loading && (
-          <Stack gap="lg" align="center">
-            <Loader size="lg" />
-            <Text>Generating flashcards...</Text>
-          </Stack>
-        )}
-      </Stack>
+              {/* Flashcard Topic */}
+              {selectedModule && (
+                <Box>
+                  <Text fw={500} mb="xs">
+                    Flashcard Topic
+                  </Text>
+                  <Paper
+                    p="sm"
+                    withBorder
+                    style={{
+                      backgroundColor:
+                        colorScheme === 'dark'
+                          ? theme.colors[theme.primaryColor][9]
+                          : theme.colors[theme.primaryColor][0],
+                      borderColor: theme.colors[theme.primaryColor][3],
+                    }}
+                  >
+                    <Text
+                      c={
+                        colorScheme === 'dark'
+                          ? theme.colors[theme.primaryColor][2]
+                          : theme.colors[theme.primaryColor][7]
+                      }
+                    >
+                      {flashcardTopic}
+                    </Text>
+                  </Paper>
+                </Box>
+              )}
+
+              {/* Number of Cards */}
+              {selectedModule && (
+                <Box>
+                  <Text fw={500} mb="xs">
+                    Number of Cards
+                  </Text>
+                  <Select
+                    placeholder="Select number of cards"
+                    data={['3', '5', '10', '15', '20'].map((num) => ({ value: num, label: num }))}
+                    value={String(numCards)}
+                    onChange={(val) => setNumCards(Number(val))}
+                  />
+                </Box>
+              )}
+
+              {/* Error Alert */}
+              {error && (
+                <Alert icon={<IconAlertCircle size={16} />} title="Error" color="red">
+                  {error}
+                </Alert>
+              )}
+
+              {/* Action Buttons */}
+              <Group justify="flex-end">
+                <Button variant="default" onClick={handleStartOver}>
+                  Clear
+                </Button>
+                {selectedModule && (
+                  <Button
+                    color={theme.primaryColor}
+                    onClick={handleGenerateCards}
+                    loading={loading}
+                    disabled={!flashcardTopic.trim() || numCards < 1}
+                  >
+                    Generate Cards
+                  </Button>
+                )}
+              </Group>
+            </Stack>
+          </Paper>
+
+          {/* Loading State */}
+          {loading && (
+            <Stack gap="lg" align="center">
+              <Loader size="lg" />
+              <Text>Generating flashcards...</Text>
+            </Stack>
+          )}
+        </Stack>
       </ListPageLayout>
     </Container>
   );

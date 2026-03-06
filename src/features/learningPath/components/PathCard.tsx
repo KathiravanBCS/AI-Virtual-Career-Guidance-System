@@ -1,6 +1,17 @@
 import { useState } from 'react';
 
-import { Badge, Button, Group, Progress, Stack, Text, ThemeIcon, Title, useMantineColorScheme, useMantineTheme } from '@mantine/core';
+import {
+  Badge,
+  Button,
+  Group,
+  Progress,
+  Stack,
+  Text,
+  ThemeIcon,
+  Title,
+  useMantineColorScheme,
+  useMantineTheme,
+} from '@mantine/core';
 import {
   IconArrowRight,
   IconBook,
@@ -48,7 +59,7 @@ const getRandomIcon = (id: string) => {
 export const PathCard: React.FC<PathCardProps> = ({ path, onDelete, index = 0, guidance }) => {
   const navigate = useNavigate();
   const theme = useMantineTheme();
-  const {colorScheme} = useMantineColorScheme();
+  const { colorScheme } = useMantineColorScheme();
   const primaryColor = theme.colors[theme.primaryColor]?.[6] || theme.primaryColor;
   const [isHovered, setIsHovered] = useState(false);
 
@@ -65,10 +76,11 @@ export const PathCard: React.FC<PathCardProps> = ({ path, onDelete, index = 0, g
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       style={{
-        background: isHovered ?colorScheme === 'dark'
-                      ? `${theme.colors[theme.primaryColor][8]}40`
-                      : theme.colors[theme.primaryColor][0]
-                    : 'white', 
+        background: isHovered
+          ? colorScheme === 'dark'
+            ? `${theme.colors[theme.primaryColor][8]}40`
+            : theme.colors[theme.primaryColor][0]
+          : 'white',
         backdropFilter: 'blur(10px)',
         border: `1.5px solid ${isHovered ? primaryColor : 'rgba(255, 255, 255, 0.15)'}`,
         borderRadius: '12px',
@@ -109,7 +121,7 @@ export const PathCard: React.FC<PathCardProps> = ({ path, onDelete, index = 0, g
               <IconTrash
                 size={20}
                 style={{
-                  color:  primaryColor,
+                  color: primaryColor,
                   transition: 'color 0.3s ease',
                 }}
               />
@@ -124,7 +136,7 @@ export const PathCard: React.FC<PathCardProps> = ({ path, onDelete, index = 0, g
           radius="md"
           style={{
             backgroundColor: `${primaryColor}20`,
-            color:  primaryColor,
+            color: primaryColor,
             transition: 'all 0.3s ease',
           }}
         >
@@ -135,7 +147,7 @@ export const PathCard: React.FC<PathCardProps> = ({ path, onDelete, index = 0, g
         <Title
           order={4}
           style={{
-            color:  primaryColor,
+            color: primaryColor,
             fontSize: '15px',
             fontWeight: 700,
             transition: 'color 0.3s ease',
@@ -180,7 +192,7 @@ export const PathCard: React.FC<PathCardProps> = ({ path, onDelete, index = 0, g
             size="sm"
             fw={600}
             style={{
-              color: primaryColor ,
+              color: primaryColor,
               transition: 'color 0.3s ease',
             }}
           >
@@ -190,7 +202,7 @@ export const PathCard: React.FC<PathCardProps> = ({ path, onDelete, index = 0, g
             <IconArrowRight
               size={18}
               style={{
-                color:  primaryColor ,
+                color: primaryColor,
                 transition: 'color 0.3s ease',
               }}
             />

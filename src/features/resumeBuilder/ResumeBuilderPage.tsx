@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+
 import {
   Box,
   Button,
@@ -10,15 +12,26 @@ import {
   useMantineTheme,
 } from '@mantine/core';
 import { IconDownload, IconEye } from '@tabler/icons-react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
-import { Resume } from '@/components/Resume';
+import { Resume as ResumeComponent } from '@/components/Resume';
 import { ResumeForm } from '@/components/ResumeForm';
+import { useResumeStore, type Resume } from '@/lib/store/useResumeStore';
 
 export const ResumeBuilderPage: React.FC = () => {
   const theme = useMantineTheme();
   const { colorScheme } = useMantineColorScheme();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { setResume } = useResumeStore();
+
+  // Load imported resume data when component mounts
+  useEffect(() => {
+    const state = location.state as { importedData?: Resume } | null;
+    if (state?.importedData) {
+      setResume(state.importedData);
+    }
+  }, [location.state, setResume]);
 
   const handleExportPDF = () => {
     // Export to PDF logic
@@ -54,27 +67,6 @@ export const ResumeBuilderPage: React.FC = () => {
         backgroundColor: colorScheme === 'dark' ? theme.colors.dark[8] : theme.white,
       }}
     >
-      {/* Header */}
-      {/* <Box
-        p="md"
-        style={{
-          borderBottom: `1px solid ${theme.colors.gray[colorScheme === 'dark' ? 7 : 2]}`,
-          backgroundColor: colorScheme === 'dark' ? theme.colors.dark[7] : theme.white,
-        }}
-      >
-        <Group justify="space-between" align="flex-start">
-          <Stack gap={0}>
-            <Text fw={700} size="h2" c={colorScheme === 'dark' ? theme.colors.gray[0] : 'black'}>
-              Resume Builder
-            </Text>
-            <Text size="sm" c="dimmed">
-              Create and manage your professional resume
-            </Text>
-          </Stack>
-          {actions}
-        </Group>
-      </Box> */}
-
       {/* Content Grid */}
       <Box
         style={{
@@ -111,7 +103,7 @@ export const ResumeBuilderPage: React.FC = () => {
             flexDirection: 'column',
           }}
         >
-          <Resume />
+          <ResumeComponent />
         </Container>
       </Box>
     </Box>

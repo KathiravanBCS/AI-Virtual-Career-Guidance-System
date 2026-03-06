@@ -225,6 +225,54 @@ interface TestResult {
   message: string;
 }
 
+// Resume Extraction Types
+export interface ExtractedResume {
+  candidateName: string;
+  email: string;
+  phone?: string;
+  location?: string;
+  totalYearsExperience: number;
+  topSkills: string[];
+  summary?: string;
+  workExperience: WorkExperienceEntry[];
+  projects?: ProjectEntry[];
+  education: EducationEntry[];
+  certifications?: string[];
+  linkedIn?: string;
+  portfolio?: string;
+}
+
+export interface WorkExperienceEntry {
+  jobTitle: string;
+  company: string;
+  duration: string;
+  description: string;
+  fullDescription?: string;
+  keyResponsibilities?: string[];
+  achievements?: string[];
+}
+
+export interface ProjectEntry {
+  name: string;
+  description: string;
+  fullDescription?: string;
+  technologies?: string[];
+  links?: {
+    github?: string;
+    demo?: string;
+    website?: string;
+  };
+  keyFeatures?: string[];
+}
+
+export interface EducationEntry {
+  degree: string;
+  field: string;
+  institution: string;
+  graduationYear?: string;
+  cgpa?: string;
+}
+
 // ==================== CONFIGURATION ====================
 
 const DEBUG_MODE = true;
@@ -3349,6 +3397,225 @@ export function shouldUseDemoMode(): boolean {
   return demoMode === 'true' || import.meta.env.VITE_DEMO_MODE === 'true';
 }
 
+// ==================== RESUME EXTRACTION FUNCTIONS ====================
+
+/**
+ * Analyze resume text with AI and extract structured information
+ */
+export const analyzeResumeWithAI = async (resumeText: string): Promise<ExtractedResume> => {
+  if (!resumeText || resumeText.trim().length === 0) {
+    throw new Error('Resume text cannot be empty');
+  }
+
+  try {
+    const prompt = `You are an expert resume parser. Extract ALL information from this resume carefully and completely.
+
+RESUME TEXT:
+"""
+${resumeText}
+"""
+
+EXTRACTION RULES:
+1. Extract EVERY skill mentioned (not just top 5)
+2. Extract ALL work experience entries and projects
+3. Calculate totalYearsExperience from dates (e.g., "Nov 2025 - current" = current year - 2025)
+4. Extract full professional summary/profile
+5. Include ALL links (LinkedIn, GitHub, Portfolio, Website)
+6. For work experience: if no end date, assume "current"
+7. Include certifications and any additional education
+
+Return ONLY valid JSON (no markdown, no extra text):
+{
+  "candidateName": "Full name",
+  "email": "email@example.com",
+  "phone": "phone number or null",
+  "location": "city, country",
+  "summary": "Full professional summary/profile text",
+  "totalYearsExperience": 0,
+  "topSkills": ["skill1", "skill2", "skill3", "skill4", "skill5", "skill6", "skill7"],
+  "allSkills": ["complete", "list", "of", "all", "skills"],
+  "workExperience": [
+    {
+      "jobTitle": "Title",
+      "company": "Company Name",
+      "duration": "Month Year - Month Year or current",
+      "description": "Brief description",
+      "fullDescription": "FULL PARAGRAPH from resume with all details and achievements",
+      "keyResponsibilities": ["responsibility1", "responsibility2", "responsibility3"],
+      "achievements": ["achievement1", "achievement2"]
+    }
+  ],
+  "projects": [
+    {
+      "name": "Project name",
+      "description": "Brief description",
+      "fullDescription": "FULL PARAGRAPH about the project with all features and details",
+      "technologies": ["tech1", "tech2"],
+      "keyFeatures": ["feature1", "feature2", "feature3"],
+      "links": {"github": "url", "demo": "url", "website": "url"}
+    }
+  ],
+  "education": [
+    {
+      "degree": "B.Tech/MBA/etc",
+      "field": "Field of Study",
+      "institution": "University Name",
+      "graduationYear": "2027",
+      "cgpa": "9.75 or null"
+    }
+  ],
+  "certifications": ["cert1", "cert2"],
+  "links": {
+    "linkedin": "url or null",
+    "github": "url or null",
+    "portfolio": "url or null",
+    "website": "url or null"
+  }
+}
+
+IMPORTANT:
+- Extract ALL skills, not just 5
+- Include ALL projects and work experience
+- Calculate years correctly from dates
+- For current positions, use "current" as end date
+- Include profile/summary text
+- Don't include markdown, only JSON
+- Use null for missing optional fields`;
+
+    const selectedModel = selectBestModel('resume-analysis', 'technical', 'high');
+    const response = await llmCompletion(prompt, selectedModel);
+
+    try {
+      const cleanedResponse = response.trim();
+      const jsonMatch = cleanedResponse.match(/\{[\s\S]*\}/);
+      const jsonString = jsonMatch ? jsonMatch[0] : cleanedResponse;
+
+      const result = sanitizeJSON(jsonString);
+      const parsedData = typeof result === 'string' ? JSON5.parse(result) : result;
+
+      // Validate and normalize the response
+      // Prefer allSkills if available, otherwise use topSkills
+      const allSkillsFromResponse = Array.isArray(parsedData.allSkills)
+        ? parsedData.allSkills
+        : Array.isArray(parsedData.topSkills)
+          ? parsedData.topSkills
+          : [];
+
+      // Extract LinkedIn/GitHub from links object or fallback to direct fields
+      const linkedIn = parsedData.links?.linkedin || parsedData.linkedIn;
+      const portfolio = parsedData.links?.portfolio || parsedData.links?.website || parsedData.portfolio;
+
+      const resumeData: ExtractedResume = {
+        candidateName: parsedData.candidateName || 'Unknown',
+        email: parsedData.email || '',
+        phone: parsedData.phone || undefined,
+        location: parsedData.location || undefined,
+        totalYearsExperience: Number(parsedData.totalYearsExperience) || 0,
+        topSkills: allSkillsFromResponse.slice(0, 10), // Return all skills (up to 10)
+        summary: parsedData.summary || undefined,
+        workExperience: Array.isArray(parsedData.workExperience) ? parsedData.workExperience : [],
+        projects: Array.isArray(parsedData.projects) ? parsedData.projects : undefined,
+        education: Array.isArray(parsedData.education) ? parsedData.education : [],
+        certifications: Array.isArray(parsedData.certifications) ? parsedData.certifications : undefined,
+        linkedIn: linkedIn || undefined,
+        portfolio: portfolio || undefined,
+      };
+
+      debugLog('Resume analysis successful', resumeData as unknown as DebugLogData);
+      return resumeData;
+    } catch (parseError) {
+      console.error('JSON parsing error in resume analysis:', parseError);
+      throw new Error(`Failed to parse resume analysis response: ${(parseError as Error).message}`);
+    }
+  } catch (error) {
+    console.error('Resume analysis error:', error);
+    throw new Error(`Resume analysis failed: ${(error as Error).message}`);
+  }
+};
+
+/**
+ * Extract information from resume text without AI (simple pattern matching)
+ */
+export const extractResumeInformation = (resumeText: string): Partial<ExtractedResume> => {
+  const extractedInfo: Partial<ExtractedResume> = {
+    topSkills: [],
+    workExperience: [],
+    education: [],
+    certifications: [],
+  };
+
+  if (!resumeText) return extractedInfo;
+
+  const text = resumeText.toLowerCase();
+
+  // Extract email
+  const emailMatch = resumeText.match(/([a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+  if (emailMatch) {
+    extractedInfo.email = emailMatch[1];
+  }
+
+  // Extract phone
+  const phoneMatch = resumeText.match(/(\+?1?\s*\(?[0-9]{3}\)?[\s.-]?[0-9]{3}[\s.-]?[0-9]{4})/);
+  if (phoneMatch) {
+    extractedInfo.phone = phoneMatch[1];
+  }
+
+  // Extract LinkedIn
+  const linkedInMatch = resumeText.match(/linkedin\.com\/in\/([a-zA-Z0-9-]+)/i);
+  if (linkedInMatch) {
+    extractedInfo.linkedIn = `https://linkedin.com/in/${linkedInMatch[1]}`;
+  }
+
+  // Extract years of experience
+  const yearsMatch = text.match(/(\d+)\+?\s*years?\s*of\s*experience/);
+  if (yearsMatch) {
+    extractedInfo.totalYearsExperience = parseInt(yearsMatch[1], 10);
+  }
+
+  // Extract common skills (simple matching)
+  const commonSkills = [
+    'JavaScript',
+    'TypeScript',
+    'React',
+    'Vue',
+    'Angular',
+    'Node.js',
+    'Python',
+    'Java',
+    'C++',
+    'C#',
+    'SQL',
+    'MongoDB',
+    'PostgreSQL',
+    'Firebase',
+    'AWS',
+    'Azure',
+    'Docker',
+    'Kubernetes',
+    'Git',
+    'HTML',
+    'CSS',
+    'REST API',
+    'GraphQL',
+    'Machine Learning',
+    'Data Science',
+    'AI',
+  ];
+
+  const foundSkills: string[] = [];
+  commonSkills.forEach((skill) => {
+    if (text.includes(skill.toLowerCase())) {
+      foundSkills.push(skill);
+    }
+  });
+
+  if (foundSkills.length > 0) {
+    extractedInfo.topSkills = foundSkills.slice(0, 5);
+  }
+
+  return extractedInfo;
+};
+
 /**
  * Enable/disable demo mode
  */
@@ -3367,6 +3634,8 @@ export default {
   generateAINudges,
   generateCareerSummary,
   getResponsiveContent,
+  analyzeResumeWithAI,
+  extractResumeInformation,
   detectDeviceType,
   canUseAdvancedModels,
   generateTopicElaboration,

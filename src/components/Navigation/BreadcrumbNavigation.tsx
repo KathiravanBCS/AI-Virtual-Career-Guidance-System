@@ -19,8 +19,8 @@ type IconComponent = React.ComponentType<{ size: number; stroke: number }>;
 
 const getIconComponentForSegment = (segment: string): IconComponent | null => {
   const iconMap: { [key: string]: IconComponent } = {
-    'home': IconHome,
-    'users': IconUser,
+    home: IconHome,
+    users: IconUser,
     guidance: IconBriefcase,
     'learning-path': IconSchool,
     'career-guidance': IconTrendingUp,

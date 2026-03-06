@@ -8,7 +8,6 @@ import { BreadcrumbNavigation } from '@/components/Navigation/BreadcrumbNavigati
 import { MainNavigation } from '@/components/Navigation/MainNavigation';
 import { TopNavbar } from '@/components/Navigation/TopNavbar';
 
-
 // Global styles to hide browser scrollbar
 const globalStyles = `
   html, body, #root {

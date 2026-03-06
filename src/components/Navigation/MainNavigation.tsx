@@ -411,82 +411,82 @@ export function MainNavigation({ collapsed, onToggle, onLinkClick }: MainNavigat
             backgroundColor: colorScheme === 'dark' ? theme.colors.dark[7] : theme.white,
           }}
         >
-        <Stack gap={0}>
-          {!collapsed ? (
-            <Menu shadow="md" width={200} position="top-start">
-              <Menu.Target>
-                <UnstyledButton
-                  style={{
-                    padding: 'var(--mantine-spacing-xs)',
-                    borderRadius: 'var(--mantine-radius-sm)',
-                    width: '100%',
-                    backgroundColor: colorScheme === 'dark' ? theme.colors.dark[6] : 'transparent',
-                  }}
-                >
-                  <Group wrap="nowrap">
-                    <Avatar size={32} radius="xl" color={theme.primaryColor} variant="filled" src={getPhotoUrl()}>
-                      {getUserInitials()}
-                    </Avatar>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <Text size="sm" fw={500} truncate="end">
-                        {getUserName()}
-                      </Text>
-                      <Text c="dimmed" size="xs" truncate="end">
-                        {getUserEmail()}
-                      </Text>
-                    </div>
-                  </Group>
-                </UnstyledButton>
-              </Menu.Target>
-              <Menu.Dropdown>
-                <Menu.Item
-                  leftSection={<IconSettings style={{ width: rem(14), height: rem(14) }} />}
-                  onClick={() => handleNavigate('/settings')}
-                >
-                  Settings
-                </Menu.Item>
-                <Menu.Divider />
-                <Menu.Item
-                  color="red"
-                  leftSection={<IconLogout style={{ width: rem(14), height: rem(14) }} />}
-                  component="button"
-                >
-                  <LogoutButton />
-                </Menu.Item>
-              </Menu.Dropdown>
-            </Menu>
-          ) : (
-            <Menu shadow="md" width={200} position="right">
-              <Menu.Target>
-                <Center py="xs">
-                  <Tooltip label={getUserName()} position="right" withArrow>
-                    <Avatar size={32} radius="xl" color={theme.primaryColor} variant="filled" src={getPhotoUrl()}>
-                      {getUserInitials()}
-                    </Avatar>
-                  </Tooltip>
-                </Center>
-              </Menu.Target>
-              <Menu.Dropdown>
-                <Menu.Item
-                  leftSection={<IconSettings style={{ width: rem(14), height: rem(14) }} />}
-                  onClick={() => handleNavigate('/settings')}
-                >
-                  Settings
-                </Menu.Item>
-                <Menu.Divider />
-                <Menu.Item
-                  color="red"
-                  leftSection={<IconLogout style={{ width: rem(14), height: rem(14) }} />}
-                  component="button"
-                >
-                  <LogoutButton />
-                </Menu.Item>
-              </Menu.Dropdown>
-            </Menu>
-          )}
+          <Stack gap={0}>
+            {!collapsed ? (
+              <Menu shadow="md" width={200} position="top-start">
+                <Menu.Target>
+                  <UnstyledButton
+                    style={{
+                      padding: 'var(--mantine-spacing-xs)',
+                      borderRadius: 'var(--mantine-radius-sm)',
+                      width: '100%',
+                      backgroundColor: colorScheme === 'dark' ? theme.colors.dark[6] : 'transparent',
+                    }}
+                  >
+                    <Group wrap="nowrap">
+                      <Avatar size={32} radius="xl" color={theme.primaryColor} variant="filled" src={getPhotoUrl()}>
+                        {getUserInitials()}
+                      </Avatar>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <Text size="sm" fw={500} truncate="end">
+                          {getUserName()}
+                        </Text>
+                        <Text c="dimmed" size="xs" truncate="end">
+                          {getUserEmail()}
+                        </Text>
+                      </div>
+                    </Group>
+                  </UnstyledButton>
+                </Menu.Target>
+                <Menu.Dropdown>
+                  <Menu.Item
+                    leftSection={<IconSettings style={{ width: rem(14), height: rem(14) }} />}
+                    onClick={() => handleNavigate('/settings')}
+                  >
+                    Settings
+                  </Menu.Item>
+                  <Menu.Divider />
+                  <Menu.Item
+                    color="red"
+                    leftSection={<IconLogout style={{ width: rem(14), height: rem(14) }} />}
+                    component="button"
+                  >
+                    <LogoutButton />
+                  </Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
+            ) : (
+              <Menu shadow="md" width={200} position="right">
+                <Menu.Target>
+                  <Center py="xs">
+                    <Tooltip label={getUserName()} position="right" withArrow>
+                      <Avatar size={32} radius="xl" color={theme.primaryColor} variant="filled" src={getPhotoUrl()}>
+                        {getUserInitials()}
+                      </Avatar>
+                    </Tooltip>
+                  </Center>
+                </Menu.Target>
+                <Menu.Dropdown>
+                  <Menu.Item
+                    leftSection={<IconSettings style={{ width: rem(14), height: rem(14) }} />}
+                    onClick={() => handleNavigate('/settings')}
+                  >
+                    Settings
+                  </Menu.Item>
+                  <Menu.Divider />
+                  <Menu.Item
+                    color="red"
+                    leftSection={<IconLogout style={{ width: rem(14), height: rem(14) }} />}
+                    component="button"
+                  >
+                    <LogoutButton />
+                  </Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
+            )}
           </Stack>
-          </Box>
-          )}
-          </nav>
-          );
-          }
+        </Box>
+      )}
+    </nav>
+  );
+}

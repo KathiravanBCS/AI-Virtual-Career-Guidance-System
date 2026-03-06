@@ -39,6 +39,7 @@
     "lodash": "^4.17.23",
     "mantine-datatable": "^8.3.13",
     "papaparse": "^5.5.3",
+    "pdfjs-dist": "^5.5.207",
     "react": "^19.2.4",
     "react-contenteditable": "^3.3.7",
     "react-dom": "^19.2.4",

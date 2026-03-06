@@ -8,6 +8,7 @@ import { ListPageLayout } from '@/components/list-page/ListPageLayout';
 import { LearningPathResults } from '@/features/learningModules/components/LearningPathResults';
 import { useAuth } from '@/lib/auth/useAuth';
 import { useLoggedInUser } from '@/lib/auth/useLoggedInUser';
+
 import { generateLearningPath } from '../../../config/groq.config';
 import {
   alertVariants,
@@ -224,133 +225,133 @@ export function GuidanceForm() {
         description="Let's create a personalized learning path for your career goals"
       >
         <motion.div initial="hidden" animate="visible" variants={containerVariants}>
-        <Stack gap="lg">
-          <motion.div variants={stepContentVariants}>
-            <Alert icon={<IconAlertCircle size={16} />} variant="light" radius="md" mb="lg">
-              <Text size="sm">Help us understand your goals. We'll create a personalized learning path for you.</Text>
-            </Alert>
-          </motion.div>
+          <Stack gap="lg">
+            <motion.div variants={stepContentVariants}>
+              <Alert icon={<IconAlertCircle size={16} />} variant="light" radius="md" mb="lg">
+                <Text size="sm">Help us understand your goals. We'll create a personalized learning path for you.</Text>
+              </Alert>
+            </motion.div>
 
-          <motion.div variants={stepContentVariants}>
-            <Stepper active={step} onStepClick={setStep} size="lg">
-              <Stepper.Step label="Personal Info" description="Your basic details">
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key="step-0"
-                    initial="hidden"
-                    animate="visible"
-                    exit="exit"
-                    variants={stepContentVariants}
+            <motion.div variants={stepContentVariants}>
+              <Stepper active={step} onStepClick={setStep} size="lg">
+                <Stepper.Step label="Personal Info" description="Your basic details">
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key="step-0"
+                      initial="hidden"
+                      animate="visible"
+                      exit="exit"
+                      variants={stepContentVariants}
+                    >
+                      <PersonalInfoStep
+                        name={formData.name}
+                        age={formData.age}
+                        onNameChange={(value) => setFormData((prev) => ({ ...prev, name: value }))}
+                        onAgeChange={(value) => setFormData((prev) => ({ ...prev, age: value || '' }))}
+                      />
+                    </motion.div>
+                  </AnimatePresence>
+                </Stepper.Step>
+
+                <Stepper.Step label="Career Goals" description="Your aspirations">
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key="step-1"
+                      initial="hidden"
+                      animate="visible"
+                      exit="exit"
+                      variants={stepContentVariants}
+                    >
+                      <CareerGoalStep
+                        careerGoal={formData.careerGoal}
+                        onCareerGoalChange={(value) => setFormData((prev) => ({ ...prev, careerGoal: value }))}
+                      />
+                    </motion.div>
+                  </AnimatePresence>
+                </Stepper.Step>
+
+                <Stepper.Step label="Career Assessment" description="Discover your path">
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key="step-2"
+                      initial="hidden"
+                      animate="visible"
+                      exit="exit"
+                      variants={stepContentVariants}
+                    >
+                      <ModernAssessmentStep
+                        answers={formData.assessmentAnswers}
+                        onAnswersChange={(answers) => setFormData((prev) => ({ ...prev, assessmentAnswers: answers }))}
+                      />
+                    </motion.div>
+                  </AnimatePresence>
+                </Stepper.Step>
+
+                <Stepper.Step label="Skills & Interests" description="Customize your path">
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key="step-3"
+                      initial="hidden"
+                      animate="visible"
+                      exit="exit"
+                      variants={stepContentVariants}
+                    >
+                      <SkillsAndInterestsStep
+                        currentSkills={formData.currentSkills}
+                        interests={formData.interests}
+                        skillInput={skillInput}
+                        interestInput={interestInput}
+                        onSkillInputChange={setSkillInput}
+                        onInterestInputChange={setInterestInput}
+                        onAddSkill={handleAddSkill}
+                        onRemoveSkill={handleRemoveSkill}
+                        onAddInterest={handleAddInterest}
+                        onRemoveInterest={handleRemoveInterest}
+                      />
+                    </motion.div>
+                  </AnimatePresence>
+                </Stepper.Step>
+              </Stepper>
+            </motion.div>
+
+            <AnimatePresence>
+              {error && (
+                <motion.div variants={alertVariants} initial="hidden" animate="visible" exit="exit">
+                  <Alert
+                    icon={<IconAlertCircle size={16} />}
+                    color="red"
+                    mb="lg"
+                    withCloseButton
+                    onClose={() => setError(null)}
                   >
-                    <PersonalInfoStep
-                      name={formData.name}
-                      age={formData.age}
-                      onNameChange={(value) => setFormData((prev) => ({ ...prev, name: value }))}
-                      onAgeChange={(value) => setFormData((prev) => ({ ...prev, age: value || '' }))}
-                    />
-                  </motion.div>
-                </AnimatePresence>
-              </Stepper.Step>
-
-              <Stepper.Step label="Career Goals" description="Your aspirations">
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key="step-1"
-                    initial="hidden"
-                    animate="visible"
-                    exit="exit"
-                    variants={stepContentVariants}
-                  >
-                    <CareerGoalStep
-                      careerGoal={formData.careerGoal}
-                      onCareerGoalChange={(value) => setFormData((prev) => ({ ...prev, careerGoal: value }))}
-                    />
-                  </motion.div>
-                </AnimatePresence>
-              </Stepper.Step>
-
-              <Stepper.Step label="Career Assessment" description="Discover your path">
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key="step-2"
-                    initial="hidden"
-                    animate="visible"
-                    exit="exit"
-                    variants={stepContentVariants}
-                  >
-                    <ModernAssessmentStep
-                      answers={formData.assessmentAnswers}
-                      onAnswersChange={(answers) => setFormData((prev) => ({ ...prev, assessmentAnswers: answers }))}
-                    />
-                  </motion.div>
-                </AnimatePresence>
-              </Stepper.Step>
-
-              <Stepper.Step label="Skills & Interests" description="Customize your path">
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key="step-3"
-                    initial="hidden"
-                    animate="visible"
-                    exit="exit"
-                    variants={stepContentVariants}
-                  >
-                    <SkillsAndInterestsStep
-                      currentSkills={formData.currentSkills}
-                      interests={formData.interests}
-                      skillInput={skillInput}
-                      interestInput={interestInput}
-                      onSkillInputChange={setSkillInput}
-                      onInterestInputChange={setInterestInput}
-                      onAddSkill={handleAddSkill}
-                      onRemoveSkill={handleRemoveSkill}
-                      onAddInterest={handleAddInterest}
-                      onRemoveInterest={handleRemoveInterest}
-                    />
-                  </motion.div>
-                </AnimatePresence>
-              </Stepper.Step>
-            </Stepper>
-          </motion.div>
-
-          <AnimatePresence>
-            {error && (
-              <motion.div variants={alertVariants} initial="hidden" animate="visible" exit="exit">
-                <Alert
-                  icon={<IconAlertCircle size={16} />}
-                  color="red"
-                  mb="lg"
-                  withCloseButton
-                  onClose={() => setError(null)}
-                >
-                  {error}
-                </Alert>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <motion.div variants={stepContentVariants}>
-            <Group justify="space-between" mt="lg">
-              <Button variant="default" onClick={() => setStep(step - 1)} disabled={step === 0}>
-                Back
-              </Button>
-
-              {step === 3 ? (
-                <Button onClick={handleGenerateLearningPath} loading={loading}>
-                  Generate Learning Path
-                </Button>
-              ) : (
-                <Button
-                  onClick={() => setStep(step + 1)}
-                  disabled={(step === 0 && !canProceedStep1) || (step === 1 && !canProceedStep2)}
-                >
-                  Next
-                </Button>
+                    {error}
+                  </Alert>
+                </motion.div>
               )}
-            </Group>
-          </motion.div>
-        </Stack>
-      </motion.div>
+            </AnimatePresence>
+
+            <motion.div variants={stepContentVariants}>
+              <Group justify="space-between" mt="lg">
+                <Button variant="default" onClick={() => setStep(step - 1)} disabled={step === 0}>
+                  Back
+                </Button>
+
+                {step === 3 ? (
+                  <Button onClick={handleGenerateLearningPath} loading={loading}>
+                    Generate Learning Path
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={() => setStep(step + 1)}
+                    disabled={(step === 0 && !canProceedStep1) || (step === 1 && !canProceedStep2)}
+                  >
+                    Next
+                  </Button>
+                )}
+              </Group>
+            </motion.div>
+          </Stack>
+        </motion.div>
       </ListPageLayout>
     </Container>
   );

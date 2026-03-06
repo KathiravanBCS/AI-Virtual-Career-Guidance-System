@@ -49,8 +49,8 @@ export const navData: NavItem[] = [
     label: 'Resume Builder',
     icon: IconFileCv,
     links: [
-      { label: 'Create Resume', icon: IconFileText, link: '/resume-builder' },
       { label: 'Import Resume', icon: IconDownload, link: '/resume-import' },
+      { label: 'Create Resume', icon: IconFileText, link: '/resume-builder' },
     ],
   },
   {
