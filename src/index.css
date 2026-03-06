@@ -1,0 +1,61 @@
+/* RoosterJS editor styles */
+.rooster-editor {
+  min-height: 400px;
+  outline: none;
+}
+
+.rooster-editor:focus {
+  outline: none;
+}
+
+@media print {
+  [data-section='sidebar'],
+  [data-section='mobile-header'],
+  [data-section='print-hide'] {
+    display: none !important;
+  }
+
+  [data-component='app-shell'] {
+    padding: 0 !important;
+  }
+
+  [data-section='main-content'] {
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  [data-component='guidance-view'] {
+    height: auto !important;
+  }
+
+  [data-component='guidance-tabs'] {
+    height: auto !important;
+  }
+
+  [data-component='guidance-overview-tab'],
+  [data-component='guidance-overview-tab'] > div {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .mantine-Tabs-panel {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .mantine-ScrollArea-root,
+  .mantine-ScrollArea-viewport {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .recharts-responsive-container {
+    page-break-inside: avoid;
+  }
+
+  [data-section='title-actions'] button,
+  [data-section='title-actions'] .mantine-ActionIcon-root {
+    display: none !important;
+  }
+}

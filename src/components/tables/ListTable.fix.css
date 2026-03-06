@@ -1,0 +1,25 @@
+/* Hide mantine-datatable empty state when we have data */
+.mantine-datatable:has(.mantine-datatable-table tbody tr:not(.mantine-datatable-empty-row))
+  .mantine-datatable-empty-state {
+  display: none !important;
+}
+
+/* Row left border accent - using theme's primary color */
+
+/* Add transparent border to first td to prevent jumping */
+.mantine-datatable-table tbody tr td:first-child {
+  border-left: 2px solid transparent;
+  transition: border-color 150ms ease;
+}
+
+/* On row hover, show primary color border */
+.mantine-datatable-table[data-highlight-on-hover] tbody tr:hover td:first-child {
+  border-left-color: var(--mantine-primary-color-5);
+}
+
+/* Selected row - darker primary color border */
+.mantine-datatable-row[data-selected] td:first-child {
+  border-left-color: var(--mantine-primary-color-6) !important;
+}
+
+/* Keep the default DataTable selection color (already uses primary color) */

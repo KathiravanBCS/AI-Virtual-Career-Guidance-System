@@ -1,0 +1,100 @@
+.sessionList {
+  display: flex;
+  flex-direction: column;
+}
+
+.sessionItem {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-sm);
+  width: 100%;
+  padding: var(--mantine-spacing-sm) var(--mantine-spacing-xs);
+  border-bottom: 1px solid var(--mantine-color-gray-2);
+  transition: background-color 0.15s ease;
+  cursor: pointer;
+}
+
+.sessionItem:last-child {
+  border-bottom: none;
+}
+
+.sessionItem:hover {
+  background: var(--mantine-color-gray-0);
+}
+
+[data-mantine-color-scheme='dark'] .sessionItem {
+  border-bottom-color: var(--mantine-color-dark-4);
+}
+
+[data-mantine-color-scheme='dark'] .sessionItem:hover {
+  background: var(--mantine-color-dark-6);
+}
+
+.sessionContent {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mantine-spacing-md);
+}
+
+.sessionMain {
+  flex: 1;
+  min-width: 0;
+}
+
+.sessionMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-lg);
+  flex-shrink: 0;
+}
+
+.sessionStats {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-md);
+}
+
+.statItem {
+  text-align: right;
+  min-width: 50px;
+}
+
+.actionButton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--mantine-radius-md);
+  transition: background-color 0.1s ease;
+}
+
+.actionButton:hover {
+  background: var(--mantine-color-gray-0);
+}
+
+[data-mantine-color-scheme='dark'] .actionButton:hover {
+  background: var(--mantine-color-dark-6);
+}
+
+.groupItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-xs);
+  border-radius: var(--mantine-radius-sm);
+  transition: background-color 0.15s ease;
+}
+
+.groupItem:hover {
+  background: var(--mantine-color-gray-0);
+}
+
+[data-mantine-color-scheme='dark'] .groupItem:hover {
+  background: var(--mantine-color-dark-6);
+}
