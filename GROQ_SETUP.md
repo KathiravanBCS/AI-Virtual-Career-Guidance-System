@@ -5,12 +5,12 @@
 Add the following environment variable to your `.env` file:
 
 ```
-VITE_GROQ_API_KEY=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
+VITE_GROQ_API_KEY=groq api key
 ```
 
 ## API Details
 
-- **API Key**: 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
+- **API Key**: groq api key
 - **API Base URL**: https://api.groq.com/openai/v1
 - **Model**: llama-3.1-8b-instant
 
