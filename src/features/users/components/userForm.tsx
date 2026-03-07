@@ -1,5 +1,6 @@
-import { Button, FileInput, Group, PasswordInput, Select, Stack, TextInput } from '@mantine/core';
+import { Button, FileInput, Group, PasswordInput, Stack, TextInput } from '@mantine/core';
 import { useForm } from '@mantine/form';
+import { RolePicker } from '@/components/Forms/Pickers';
 
 interface UserFormData {
   email: string;
@@ -9,7 +10,7 @@ interface UserFormData {
   location: string;
   profile_picture_url?: string;
   password: string;
-  role_id: number;
+  role_id: number | null;
 }
 
 interface UserFormProps {
@@ -28,7 +29,7 @@ export function UserForm({ onSubmit, initialValues, isLoading = false }: UserFor
       location: initialValues?.location || '',
       profile_picture_url: initialValues?.profile_picture_url || '',
       password: '',
-      role_id: initialValues?.role_id || 1,
+      role_id: initialValues?.role_id || null,
     },
     validate: {
       email: (value) => (/^\S+@\S+$/.test(value) ? null : 'Invalid email address'),
@@ -37,13 +38,14 @@ export function UserForm({ onSubmit, initialValues, isLoading = false }: UserFor
       phone: (value) => (value.trim() ? null : 'Phone is required'),
       location: (value) => (value.trim() ? null : 'Location is required'),
       password: (value) => (value && value.length < 6 ? 'Password must be at least 6 characters' : null),
+      role_id: (value) => (value ? null : 'Role is required'),
     },
   });
 
   const handleSubmit = (values: UserFormData) => {
     const payload: any = {
       ...values,
-      role_id: Number(values.role_id),
+      role_id: values.role_id ? Number(values.role_id) : undefined,
     };
 
     // Remove empty profile_picture_url
@@ -76,15 +78,10 @@ export function UserForm({ onSubmit, initialValues, isLoading = false }: UserFor
 
         <PasswordInput label="Password" placeholder="Your password" {...form.getInputProps('password')} />
 
-        <Select
-          label="Role"
-          placeholder="Select a role"
-          data={[
-            { value: '1', label: 'User' },
-            { value: '2', label: 'Admin' },
-            { value: '3', label: 'Moderator' },
-          ]}
-          {...form.getInputProps('role_id')}
+        <RolePicker
+          value={form.values.role_id}
+          onChange={(val) => form.setFieldValue('role_id', val)}
+          required
         />
 
         <Group justify="flex-end">

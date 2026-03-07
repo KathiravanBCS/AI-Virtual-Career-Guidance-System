@@ -14,6 +14,9 @@ import { HomePage } from './features/home';
 import { LeaderboardPage } from './features/leaderboard/pages/LeaderboardPage';
 import { LearningPathDetailsPage } from './features/learningPath/pages/LearningPathDetailsPage';
 import { LearningPathPage } from './features/learningPath/pages/LearningPathPage';
+import { PermissionsListPage } from './features/master/masterPermissions';
+import { RolesListPage } from './features/master/masterRoles';
+import { RolePermissionsListPage } from './features/master/rolePermissions';
 import { SkillsListPage } from './features/master/masterSkills/pages';
 import { QuizGenerator } from './features/quiz/components/QuizGenerator';
 import { QuizDisplayPage } from './features/quiz/pages/QuizDisplayPage';
@@ -84,11 +87,23 @@ const router = createHashRouter([
         ],
       },
       {
-        path: 'master/skills',
+        path: 'master',
         children: [
           {
-            index: true,
+            path: 'skills',
             element: <SkillsListPage />,
+          },
+          {
+            path: 'roles',
+            element: <RolesListPage />,
+          },
+          {
+            path: 'permissions',
+            element: <PermissionsListPage />,
+          },
+          {
+            path: 'role-permissions',
+            element: <RolePermissionsListPage />,
           },
         ],
       },

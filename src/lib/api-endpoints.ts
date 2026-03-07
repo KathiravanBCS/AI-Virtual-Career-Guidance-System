@@ -116,6 +116,33 @@ export const API_ENDPOINTS = {
     delete: (moduleId: number) => `/api/v1/learning-modules/${moduleId}`,
   },
 
+  // Master Roles
+  roles: {
+    list: '/api/v1/roles/',
+    create: '/api/v1/roles/',
+    get: (roleId: number) => `/api/v1/roles/${roleId}`,
+    update: (roleId: number) => `/api/v1/roles/${roleId}`,
+    delete: (roleId: number) => `/api/v1/roles/${roleId}`,
+  },
+
+  // Master Permissions
+  permissions: {
+    list: '/api/v1/permissions/',
+    create: '/api/v1/permissions/',
+    get: (permissionId: number) => `/api/v1/permissions/${permissionId}`,
+    update: (permissionId: number) => `/api/v1/permissions/${permissionId}`,
+    delete: (permissionId: number) => `/api/v1/permissions/${permissionId}`,
+  },
+
+  // Role Permissions
+  rolePermissions: {
+    list: '/api/v1/role-permissions/',
+    create: '/api/v1/role-permissions/',
+    get: (rolePermissionId: number) => `/api/v1/role-permissions/${rolePermissionId}`,
+    update: (rolePermissionId: number) => `/api/v1/role-permissions/${rolePermissionId}`,
+    delete: (rolePermissionId: number) => `/api/v1/role-permissions/${rolePermissionId}`,
+  },
+
   // Health Check
   health: '/health',
 };

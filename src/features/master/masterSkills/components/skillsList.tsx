@@ -11,6 +11,7 @@ import { useListPageState } from '@/lib/hooks/useListPageState';
 
 import { useCreateSkill, useGetAllSkills, useGetSkillById, useUpdateSkill } from '../api';
 import type { CreateSkillRequest, SkillDetail, SkillListItem, UpdateSkillRequest } from '../types';
+import { IconPlus } from '@tabler/icons-react';
 
 const SkillsList: React.FC = () => {
   const { data: skills = [], isLoading, error } = useGetAllSkills();
@@ -182,7 +183,7 @@ const SkillsList: React.FC = () => {
         titleProps={{ fw: 700, size: 'h1' }}
         description="Browse all available skills in the system."
         actions={
-          <Button onClick={handleAddSkillClick} size="md">
+          <Button leftSection={<IconPlus />} onClick={handleAddSkillClick} size="sm">
             Add Skill
           </Button>
         }

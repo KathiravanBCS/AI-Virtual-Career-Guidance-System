@@ -23,6 +23,27 @@ import type {
   UpdateSkillRequest,
 } from '@/features/master/masterSkills/types';
 import type {
+  CreatePermissionRequest,
+  GetAllPermissionsResponse,
+  GetPermissionByIdResponse,
+  Permission,
+  UpdatePermissionRequest,
+} from '@/features/master/masterPermissions/types';
+import type {
+  CreateRoleRequest,
+  GetAllRolesResponse,
+  GetRoleByIdResponse,
+  Role,
+  UpdateRoleRequest,
+} from '@/features/master/masterRoles/types';
+import type {
+  CreateRolePermissionRequest,
+  GetAllRolePermissionsResponse,
+  GetRolePermissionByIdResponse,
+  RolePermission,
+  UpdateRolePermissionRequest,
+} from '@/features/master/rolePermissions/types';
+import type {
   CreateSkillGapRequest,
   CreateUserProfileRequest,
   CreateUserRequest,
@@ -152,6 +173,34 @@ const createServices = () => {
         delete: (skillId: string) => Promise.resolve({}),
       },
 
+      // Roles services
+      roles: {
+        getAll: () => Promise.resolve({} as GetAllRolesResponse),
+        getById: (roleId: number) => Promise.resolve({} as GetRoleByIdResponse),
+        create: (data: CreateRoleRequest) => Promise.resolve({} as Role),
+        update: (roleId: number, data: Partial<UpdateRoleRequest>) => Promise.resolve({} as Role),
+        delete: (roleId: number) => Promise.resolve({}),
+      },
+
+      // Permissions services
+      permissions: {
+        getAll: () => Promise.resolve({} as GetAllPermissionsResponse),
+        getById: (permissionId: number) => Promise.resolve({} as GetPermissionByIdResponse),
+        create: (data: CreatePermissionRequest) => Promise.resolve({} as Permission),
+        update: (permissionId: number, data: Partial<UpdatePermissionRequest>) => Promise.resolve({} as Permission),
+        delete: (permissionId: number) => Promise.resolve({}),
+      },
+
+      // Role Permissions services
+      rolePermissions: {
+        getAll: () => Promise.resolve({} as GetAllRolePermissionsResponse),
+        getById: (rolePermissionId: number) => Promise.resolve({} as GetRolePermissionByIdResponse),
+        create: (data: CreateRolePermissionRequest) => Promise.resolve({} as RolePermission),
+        update: (rolePermissionId: number, data: Partial<UpdateRolePermissionRequest>) =>
+          Promise.resolve({} as RolePermission),
+        delete: (rolePermissionId: number) => Promise.resolve({}),
+      },
+
       // Health check
       health: {
         check: () => Promise.resolve({ status: 'ok' }),
@@ -271,6 +320,39 @@ const createServices = () => {
       delete: (skillId: string) => apiClient.delete(API_ENDPOINTS.skills.delete(skillId)),
     },
 
+    // Roles services
+    roles: {
+      getAll: () => apiClient.get<GetAllRolesResponse>(API_ENDPOINTS.roles.list),
+      getById: (roleId: number) => apiClient.get<GetRoleByIdResponse>(API_ENDPOINTS.roles.get(roleId)),
+      create: (data: CreateRoleRequest) => apiClient.post<Role>(API_ENDPOINTS.roles.create, data),
+      update: (roleId: number, data: Partial<UpdateRoleRequest>) =>
+        apiClient.put<Role>(API_ENDPOINTS.roles.update(roleId), data),
+      delete: (roleId: number) => apiClient.delete(API_ENDPOINTS.roles.delete(roleId)),
+    },
+
+    // Permissions services
+    permissions: {
+      getAll: () => apiClient.get<GetAllPermissionsResponse>(API_ENDPOINTS.permissions.list),
+      getById: (permissionId: number) =>
+        apiClient.get<GetPermissionByIdResponse>(API_ENDPOINTS.permissions.get(permissionId)),
+      create: (data: CreatePermissionRequest) => apiClient.post<Permission>(API_ENDPOINTS.permissions.create, data),
+      update: (permissionId: number, data: Partial<UpdatePermissionRequest>) =>
+        apiClient.put<Permission>(API_ENDPOINTS.permissions.update(permissionId), data),
+      delete: (permissionId: number) => apiClient.delete(API_ENDPOINTS.permissions.delete(permissionId)),
+    },
+
+    // Role Permissions services
+    rolePermissions: {
+      getAll: () => apiClient.get<GetAllRolePermissionsResponse>(API_ENDPOINTS.rolePermissions.list),
+      getById: (rolePermissionId: number) =>
+        apiClient.get<GetRolePermissionByIdResponse>(API_ENDPOINTS.rolePermissions.get(rolePermissionId)),
+      create: (data: CreateRolePermissionRequest) =>
+        apiClient.post<RolePermission>(API_ENDPOINTS.rolePermissions.create, data),
+      update: (rolePermissionId: number, data: Partial<UpdateRolePermissionRequest>) =>
+        apiClient.put<RolePermission>(API_ENDPOINTS.rolePermissions.update(rolePermissionId), data),
+      delete: (rolePermissionId: number) => apiClient.delete(API_ENDPOINTS.rolePermissions.delete(rolePermissionId)),
+    },
+
     // Health check
     health: {
       check: () => apiClient.get<{ status: string }>(API_ENDPOINTS.health),
@@ -291,6 +373,9 @@ interface ApiInterface {
   learningGuidance: typeof services.learningGuidance;
   learningModules: typeof services.learningModules;
   skills: typeof services.skills;
+  roles: typeof services.roles;
+  permissions: typeof services.permissions;
+  rolePermissions: typeof services.rolePermissions;
   health: typeof services.health;
 }
 

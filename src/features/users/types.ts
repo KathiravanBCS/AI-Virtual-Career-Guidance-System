@@ -1,3 +1,5 @@
+import type { Role } from '@/features/master/masterRoles/types';
+
 // User response types
 export interface User {
   id: number;
@@ -13,6 +15,7 @@ export interface User {
   is_active: boolean;
   created_at: string;
   last_login: string;
+  role?: Role;
 }
 
 // Get all users response
@@ -30,7 +33,7 @@ export interface CreateUserRequest {
   location: string;
   profile_picture_url?: string;
   password: string;
-  role_id: number;
+  role_id: number | null;
 }
 
 // Update user request

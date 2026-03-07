@@ -114,10 +114,16 @@ const UserList: React.FC = () => {
     {
       accessor: 'email',
       title: 'Email',
-      width: 200,
+      width: 250,
       resizable: true,
       sortable: true,
-      render: (user) => <Text size="md">{user.email}</Text>,
+      render: (user) => (
+        <Tooltip label={user.email} position="top" multiline maw={300}>
+          <Text size="md" truncate>
+            {user.email}
+          </Text>
+        </Tooltip>
+      ),
     },
     {
       accessor: 'phone',
@@ -136,14 +142,14 @@ const UserList: React.FC = () => {
       render: (user) => <Text size="md">{user.location}</Text>,
     },
     {
-      accessor: 'role_id',
+      accessor: 'role.role_name',
       title: 'Role',
-      width: 120,
+      width: 150,
       resizable: true,
       sortable: true,
       render: (user) => (
         <Badge color="blue" variant="light">
-          Role {user.role_id}
+          {user.role?.role_name || `Role ${user.role_id}`}
         </Badge>
       ),
     },

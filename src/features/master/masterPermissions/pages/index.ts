@@ -1,0 +1,1 @@
+export { PermissionsListPage } from './PermissionsListPage';

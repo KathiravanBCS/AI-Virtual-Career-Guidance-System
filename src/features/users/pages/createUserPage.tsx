@@ -46,6 +46,16 @@ export function CreateUserPage() {
       return;
     }
 
+    if (!values.role_id) {
+      notifications.show({
+        title: 'Validation Error',
+        message: 'Role is required',
+        color: 'red',
+        autoClose: false,
+      });
+      return;
+    }
+
     const payload: CreateUserRequest = {
       email: values.email,
       first_name: values.first_name,
