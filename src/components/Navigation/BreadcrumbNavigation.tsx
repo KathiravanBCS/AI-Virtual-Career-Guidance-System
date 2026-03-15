@@ -91,7 +91,7 @@ export function BreadcrumbNavigation() {
             }}
             onMouseEnter={(e) => {
               if (index !== arr.length - 1) {
-                (e.currentTarget as HTMLElement).style.color = theme.colors.blue[6];
+                (e.currentTarget as HTMLElement).style.color = theme.colors[theme.primaryColor][6];
               }
             }}
             onMouseLeave={(e) => {

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import { Badge, Button, Checkbox, Container, Drawer, Group, Stack, Text, TextInput } from '@mantine/core';
+import { IconPlus } from '@tabler/icons-react';
 import { DataTableColumn } from 'mantine-datatable';
 
 import { ListPageLayout } from '@/components/list-page/ListPageLayout';
@@ -10,7 +11,6 @@ import { useListPageState } from '@/lib/hooks/useListPageState';
 
 import { useCreateRole, useDeleteRole, useGetAllRoles, useGetRoleById, useUpdateRole } from '../api';
 import type { CreateRoleRequest, Role, UpdateRoleRequest } from '../types';
-import { IconPlus } from '@tabler/icons-react';
 
 const RolesList: React.FC = () => {
   const { data: rolesResponse, isLoading, error } = useGetAllRoles();

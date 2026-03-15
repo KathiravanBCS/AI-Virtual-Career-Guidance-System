@@ -4,29 +4,37 @@ import { Layout } from './components/Layout/Layout';
 import { ResumePreview } from './components/Resume/ResumePreview';
 import { ForgotPasswordPage, SignUpPage } from './features/auth';
 import { LoginPage } from './features/auth/pages/LoginPage';
+import { CareerGuidanceDetailsPage } from './features/careers/pages/CareerGuidanceDetailsPage';
+import { CareerGuidanceListPage } from './features/careers/pages/CareerGuidanceListPage';
+import { JobRecommendationsPage } from './features/careers/pages/JobRecommendationsPage';
 import { CareerSummaryPage } from './features/careerSummary/pages/CareerSummaryPage';
 import { ChatPage } from './features/chat/pages/ChatPage';
 import { FlashcardGenerator } from './features/flashcards/components/FlashcardGenerator';
 import { FlashcardDisplayPage } from './features/flashcards/pages/FlashcardDisplayPage';
 import { FlashcardsPage } from './features/flashcards/pages/FlashcardsPage';
+import GamificationDashboard from './features/gamification/pages/GamificationDashboard';
+import { FlashcardViewPage } from './features/flashcards/pages/FlashcardViewPage';
 import { GuidancePage } from './features/guidance';
 import { HomePage } from './features/home';
 import { LeaderboardPage } from './features/leaderboard/pages/LeaderboardPage';
 import { LearningPathDetailsPage } from './features/learningPath/pages/LearningPathDetailsPage';
 import { LearningPathPage } from './features/learningPath/pages/LearningPathPage';
+import ModuleContentPage from './features/learningPath/pages/ModuleContentPage';
 import { PermissionsListPage } from './features/master/masterPermissions';
 import { RolesListPage } from './features/master/masterRoles';
-import { RolePermissionsListPage } from './features/master/rolePermissions';
 import { SkillsListPage } from './features/master/masterSkills/pages';
+import { RolePermissionsListPage } from './features/master/rolePermissions';
 import { QuizGenerator } from './features/quiz/components/QuizGenerator';
 import { QuizDisplayPage } from './features/quiz/pages/QuizDisplayPage';
 import { QuizPage } from './features/quiz/pages/QuizPage';
+import { QuizViewPage } from './features/quiz/pages/QuizViewPage';
 import { ResumeBuilderPage } from './features/resumeBuilder/ResumeBuilderPage';
 import { ResumeImportPage } from './features/resumeBuilder/ResumeImportPage';
 import { CreateUserPage } from './features/users/pages/createUserPage';
 import { UserEditPage } from './features/users/pages/UserEditPage';
 import { UserListPage } from './features/users/pages/userListPage';
 import { AuthGuard } from './lib/auth/AuthGuard';
+import { AICareerGuidancePage } from './pages/AICareerGuidance/AICareerGuidance.page';
 import { Dashboard } from './pages/Dashboard/Dashboard';
 import { NotFoundPage } from './pages/NotFound.page';
 import { SettingsPage } from './pages/Settings/SettingsPage';
@@ -120,7 +128,7 @@ const router = createHashRouter([
           },
           {
             path: ':id/module/:moduleIndex',
-            element: <LearningPathDetailsPage />,
+            element: <ModuleContentPage />,
           },
         ],
       },
@@ -139,6 +147,10 @@ const router = createHashRouter([
             path: 'display',
             element: <FlashcardDisplayPage />,
           },
+          {
+            path: 'view/:id',
+            element: <FlashcardViewPage />,
+          },
         ],
       },
       {
@@ -152,6 +164,10 @@ const router = createHashRouter([
             path: 'display',
             element: <QuizDisplayPage />,
           },
+          {
+            path: 'view/:quizId',
+            element: <QuizViewPage />,
+          },
         ],
       },
       {
@@ -163,12 +179,37 @@ const router = createHashRouter([
         element: <CareerSummaryPage />,
       },
       {
+        path: 'career-guidance',
+        children: [
+          {
+            index: true,
+            element: <CareerGuidanceListPage />,
+          },
+          {
+            path: ':id',
+            element: <CareerGuidanceDetailsPage />,
+          },
+        ],
+      },
+      {
+        path: 'job-recommendations',
+        element: <JobRecommendationsPage />,
+      },
+      {
+        path: 'ai-career-guidance',
+        element: <AICareerGuidancePage />,
+      },
+      {
         path: 'ai-chat',
         element: <ChatPage />,
       },
       {
         path: 'leaderboard',
         element: <LeaderboardPage />,
+      },
+      {
+        path: 'gamification',
+        element: <GamificationDashboard />,
       },
       {
         path: 'resume-builder',

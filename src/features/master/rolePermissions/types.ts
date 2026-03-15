@@ -1,7 +1,7 @@
 // Role Permissions Types
 
-import type { Role } from '../masterRoles/types';
 import type { Permission } from '../masterPermissions/types';
+import type { Role } from '../masterRoles/types';
 
 export interface RolePermission {
   id: number;

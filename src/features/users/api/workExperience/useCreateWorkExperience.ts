@@ -2,6 +2,7 @@ import { notifications } from '@mantine/notifications';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { api } from '@/lib/api';
+import { getErrorMessage } from '@/lib/utils/errorHandler';
 
 import type { CreateWorkExperienceRequest } from '../../types';
 
@@ -19,10 +20,10 @@ export const useCreateWorkExperience = () => {
         color: 'green',
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       notifications.show({
         title: 'Error adding work experience',
-        message: error?.message || 'Failed to add work experience',
+        message: getErrorMessage(error),
         color: 'red',
       });
     },

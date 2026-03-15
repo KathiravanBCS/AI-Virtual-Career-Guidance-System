@@ -2,6 +2,7 @@ import { notifications } from '@mantine/notifications';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { api } from '@/lib/api';
+import { getErrorMessage } from '@/lib/utils/errorHandler';
 
 export const useDeleteWorkExperience = () => {
   const queryClient = useQueryClient();
@@ -18,10 +19,10 @@ export const useDeleteWorkExperience = () => {
         color: 'green',
       });
     },
-    onError: (error: Error) => {
+    onError: (error: unknown) => {
       notifications.show({
         title: 'Error',
-        message: error.message || 'Failed to delete work experience',
+        message: getErrorMessage(error),
         color: 'red',
       });
     },

@@ -2,6 +2,7 @@ import { notifications } from '@mantine/notifications';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { api } from '@/lib/api';
+import { getErrorMessage } from '@/lib/utils/errorHandler';
 
 import { type CreateUserRequest } from '../../types';
 
@@ -23,7 +24,7 @@ export const useCreateUser = () => {
 
       notifications.show({
         title: 'Error creating user profile',
-        message: error?.message || 'Failed to create user profile',
+        message: getErrorMessage(error),
         color: 'red',
       });
     },

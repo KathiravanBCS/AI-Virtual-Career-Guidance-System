@@ -4,7 +4,7 @@ import { Alert, Center, Container, Loader, Stack } from '@mantine/core';
 
 import { useGetLearningPathsForQuiz } from '../api/useQuiz';
 import { QuizQuestion, QuizResults, QuizSetup } from '../components';
-import { QuizData, QuizResults as QuizResultsType } from '../types';
+import type { QuizData, QuizResults as QuizResultsType } from '../types';
 
 export const QuizPage: React.FC = () => {
   const { data: paths = [], isLoading: pathsLoading } = useGetLearningPathsForQuiz();
@@ -55,19 +55,23 @@ export const QuizPage: React.FC = () => {
       // Mock quiz generation - replace with your API call
       const mockQuizData: QuizData = {
         topic,
-        questions: Array.from({ length: numQuestions }, (_, i) => ({
-          question: `Question ${i + 1}: What is ${topic}?`,
-          answers: [
+        questions: Array.from({ length: numQuestions }, (_, i) => {
+          const options = [
             `Answer A for question ${i + 1}`,
             `Answer B for question ${i + 1}`,
             `Answer C for question ${i + 1}`,
             `Answer D for question ${i + 1}`,
-          ],
-          correctAnswer: Math.floor(Math.random() * 4),
-          explanation: `This is the explanation for question ${i + 1}`,
-          point: 10,
-          questionType: 'single',
-        })),
+          ];
+          return {
+            question: `Question ${i + 1}: What is ${topic}?`,
+            answers: options,
+            options: options,
+            correctAnswer: Math.floor(Math.random() * 4),
+            explanation: `This is the explanation for question ${i + 1}`,
+            point: 10,
+            questionType: 'single' as const,
+          };
+        }),
       };
       setQuizData(mockQuizData);
     } catch (err) {
@@ -117,7 +121,7 @@ export const QuizPage: React.FC = () => {
       const userAnswer = userAnswers[idx] || [];
 
       if (JSON.stringify([...userAnswer].sort()) === JSON.stringify([...correctAnswer].sort())) {
-        totalScore += q.point;
+        totalScore += q.point || 10;
         correctCount++;
       }
     });

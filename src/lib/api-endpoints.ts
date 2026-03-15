@@ -3,6 +3,7 @@ export const API_ENDPOINTS = {
   auth: {
     login: '/api/v1/users/login',
     register: '/api/v1/users',
+    getPermissions: '/api/v1/users/permissions/current',
   },
 
   // Users
@@ -55,11 +56,11 @@ export const API_ENDPOINTS = {
     delete: (gapId: number) => `/api/v1/skill-gaps/${gapId}`,
   },
 
-  // Careers
-  careers: {
-    list: '/api/v1/careers/',
-    get: (careerId: string) => `/api/v1/careers/${careerId}`,
-  },
+  // // Careers
+  // careers: {
+  //   list: '/api/v1/careers/',
+  //   get: (careerId: string) => `/api/v1/careers/${careerId}`,
+  // },
 
   // Skills
   skills: {
@@ -76,11 +77,11 @@ export const API_ENDPOINTS = {
     get: (assessmentId: string) => `/api/v1/assessments/${assessmentId}`,
   },
 
-  // Recommendations
-  recommendations: {
-    list: '/api/v1/recommendations/',
-    get: (recommendationId: string) => `/api/v1/recommendations/${recommendationId}`,
-  },
+  // // Recommendations
+  // recommendations: {
+  //   list: '/api/v1/recommendations/',
+  //   get: (recommendationId: string) => `/api/v1/recommendations/${recommendationId}`,
+  // },
 
   // Learning Resources
   learning: {
@@ -116,6 +117,40 @@ export const API_ENDPOINTS = {
     delete: (moduleId: number) => `/api/v1/learning-modules/${moduleId}`,
   },
 
+  // Flashcards
+  flashcards: {
+    list: '/api/v1/flashcards',
+    create: '/api/v1/flashcards',
+    get: (flashcardId: number) => `/api/v1/flashcards/${flashcardId}`,
+    update: (flashcardId: number) => `/api/v1/flashcards/${flashcardId}`,
+    delete: (flashcardId: number) => `/api/v1/flashcards/${flashcardId}`,
+    getByModule: (moduleId: number) => `/api/v1/flashcards/module/${moduleId}`,
+    items: {
+      list: (flashcardId: number) => `/api/v1/flashcards/${flashcardId}/items`,
+      create: (flashcardId: number) => `/api/v1/flashcards/${flashcardId}/items`,
+      get: (flashcardId: number, itemId: number) => `/api/v1/flashcards/${flashcardId}/items/${itemId}`,
+      update: (flashcardId: number, itemId: number) => `/api/v1/flashcards/${flashcardId}/items/${itemId}`,
+      delete: (flashcardId: number, itemId: number) => `/api/v1/flashcards/${flashcardId}/items/${itemId}`,
+    },
+  },
+
+  // Quizzes
+  quizzes: {
+    list: '/api/v1/quizzes',
+    create: '/api/v1/quizzes',
+    get: (quizId: number) => `/api/v1/quizzes/${quizId}`,
+    update: (quizId: number) => `/api/v1/quizzes/${quizId}`,
+    delete: (quizId: number) => `/api/v1/quizzes/${quizId}`,
+    getByModule: (moduleId: number) => `/api/v1/quizzes/module/${moduleId}`,
+    questions: {
+      list: (quizId: number) => `/api/v1/quizzes/${quizId}/questions`,
+      create: (quizId: number) => `/api/v1/quizzes/${quizId}/questions`,
+      get: (quizId: number, questionId: number) => `/api/v1/quizzes/${quizId}/questions/${questionId}`,
+      update: (quizId: number, questionId: number) => `/api/v1/quizzes/${quizId}/questions/${questionId}`,
+      delete: (quizId: number, questionId: number) => `/api/v1/quizzes/${quizId}/questions/${questionId}`,
+    },
+  },
+
   // Master Roles
   roles: {
     list: '/api/v1/roles/',
@@ -141,6 +176,134 @@ export const API_ENDPOINTS = {
     get: (rolePermissionId: number) => `/api/v1/role-permissions/${rolePermissionId}`,
     update: (rolePermissionId: number) => `/api/v1/role-permissions/${rolePermissionId}`,
     delete: (rolePermissionId: number) => `/api/v1/role-permissions/${rolePermissionId}`,
+  },
+
+  // Documents
+  documents: {
+    convertToText: '/api/v1/documents/convert-to-text',
+    supportedFormats: '/api/v1/documents/supported-formats',
+  },
+
+  // Chat
+  chat: {
+    sessions: {
+      list: '/api/v1/chat/sessions',
+      create: '/api/v1/chat/sessions',
+      get: (sessionId: string) => `/api/v1/chat/sessions/${sessionId}`,
+      update: (sessionId: string) => `/api/v1/chat/sessions/${sessionId}`,
+      delete: (sessionId: string) => `/api/v1/chat/sessions/${sessionId}`,
+      messages: {
+        list: (sessionId: string) => `/api/v1/chat/sessions/${sessionId}/messages`,
+        create: (sessionId: string) => `/api/v1/chat/sessions/${sessionId}/messages`,
+      },
+    },
+    messages: {
+      get: (messageId: string) => `/api/v1/chat/messages/${messageId}`,
+      update: (messageId: string) => `/api/v1/chat/messages/${messageId}`,
+      delete: (messageId: string) => `/api/v1/chat/messages/${messageId}`,
+    },
+  },
+
+  // Careers
+  careers: {
+    list: '/api/v1/careers',
+    get: (careerId: number) => `/api/v1/careers/${careerId}`,
+    create: '/api/v1/careers',
+    update: (careerId: number) => `/api/v1/careers/${careerId}`,
+    delete: (careerId: number) => `/api/v1/careers/${careerId}`,
+  },
+
+  // Career Skills
+  careerSkills: {
+    list: '/api/v1/career-skills',
+    get: (skillId: number) => `/api/v1/career-skills/${skillId}`,
+    create: '/api/v1/career-skills',
+    update: (skillId: number) => `/api/v1/career-skills/${skillId}`,
+    delete: (skillId: number) => `/api/v1/career-skills/${skillId}`,
+  },
+
+  // Career Companies
+  careerCompanies: {
+    list: '/api/v1/career-companies',
+    get: (companyId: number) => `/api/v1/career-companies/${companyId}`,
+    create: '/api/v1/career-companies',
+    update: (companyId: number) => `/api/v1/career-companies/${companyId}`,
+    delete: (companyId: number) => `/api/v1/career-companies/${companyId}`,
+  },
+
+  // In Demand Skills
+  inDemandSkills: {
+    list: '/api/v1/in-demand-skills',
+    get: (skillId: number) => `/api/v1/in-demand-skills/${skillId}`,
+    create: '/api/v1/in-demand-skills',
+    update: (skillId: number) => `/api/v1/in-demand-skills/${skillId}`,
+    delete: (skillId: number) => `/api/v1/in-demand-skills/${skillId}`,
+  },
+
+  // Recommendations
+  recommendations: {
+    list: '/api/v1/recommendations',
+    get: (recommendationId: number) => `/api/v1/recommendations/${recommendationId}`,
+    getByUser: (userId: number) => `/api/v1/recommendations/user/${userId}`,
+    create: '/api/v1/recommendations',
+    update: (recommendationId: number) => `/api/v1/recommendations/${recommendationId}`,
+    delete: (recommendationId: number) => `/api/v1/recommendations/${recommendationId}`,
+  },
+
+  // Job Market Trends
+  jobMarketTrends: {
+    list: '/api/v1/job-market-trends',
+    get: (trendId: number) => `/api/v1/job-market-trends/${trendId}`,
+    getByCareer: (careerId: number) => `/api/v1/job-market-trends/career/${careerId}`,
+    create: '/api/v1/job-market-trends',
+    update: (trendId: number) => `/api/v1/job-market-trends/${trendId}`,
+    delete: (trendId: number) => `/api/v1/job-market-trends/${trendId}`,
+  },
+
+  // Career Exploration Logs
+  careerExplorationLogs: {
+    list: '/api/v1/career-exploration-logs',
+    get: (logId: number) => `/api/v1/career-exploration-logs/${logId}`,
+    getByUser: (userId: number) => `/api/v1/career-exploration-logs/user/${userId}`,
+    create: '/api/v1/career-exploration-logs',
+    update: (logId: number) => `/api/v1/career-exploration-logs/${logId}`,
+    delete: (logId: number) => `/api/v1/career-exploration-logs/${logId}`,
+  },
+
+  // Career Guidance
+  careerGuidance: {
+    list: '/api/v1/career-guidance',
+    create: '/api/v1/career-guidance',
+    get: (guidanceId: number) => `/api/v1/career-guidance/${guidanceId}`,
+    update: (guidanceId: number) => `/api/v1/career-guidance/${guidanceId}`,
+    delete: (guidanceId: number) => `/api/v1/career-guidance/${guidanceId}`,
+    getByUser: (userId: number) => `/api/v1/career-guidance/user/${userId}`,
+  },
+
+  // Gamification
+  gamification: {
+    // User points and stats
+    points: {
+      get: (userId: number) => `/api/v1/gamification/points/${userId}`,
+    },
+    userStats: {
+      get: (userId: number, days?: number) =>
+        `/api/v1/gamification/user-stats/${userId}${days ? `?days=${days}` : ''}`,
+    },
+    // Streak tracking
+    streak: {
+      get: (userId: number) => `/api/v1/gamification/streak/${userId}`,
+    },
+    // Leaderboard
+    leaderboard: {
+      get: (period: string) => `/api/v1/gamification/leaderboard/${period}`,
+    },
+    // Activity logging
+    activities: {
+      log: '/api/v1/gamification/activities/log',
+      list: (userId: number) => `/api/v1/gamification/activities/${userId}`,
+      get: (activityId: number) => `/api/v1/gamification/activities/${activityId}`,
+    },
   },
 
   // Health Check

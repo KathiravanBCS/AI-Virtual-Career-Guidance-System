@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
-import { Badge, Button, Checkbox, Container, Drawer, Group, Stack, Text, TextInput, Textarea } from '@mantine/core';
+import { Badge, Button, Checkbox, Container, Drawer, Group, Stack, Text, Textarea, TextInput } from '@mantine/core';
+import { IconPlus } from '@tabler/icons-react';
 import { DataTableColumn } from 'mantine-datatable';
 
 import { ListPageLayout } from '@/components/list-page/ListPageLayout';
@@ -16,11 +17,12 @@ import {
   useUpdatePermission,
 } from '../api';
 import type { CreatePermissionRequest, Permission, UpdatePermissionRequest } from '../types';
-import { IconPlus } from '@tabler/icons-react';
 
 const PermissionsList: React.FC = () => {
   const { data: permissionsResponse, isLoading, error } = useGetAllPermissions();
-  const permissions = Array.isArray(permissionsResponse) ? permissionsResponse : (permissionsResponse as any)?.data || [];
+  const permissions = Array.isArray(permissionsResponse)
+    ? permissionsResponse
+    : (permissionsResponse as any)?.data || [];
   const [selectedPermissionId, setSelectedPermissionId] = useState<number | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);

@@ -43,6 +43,7 @@ export interface UpdateUserRequest {
   phone?: string;
   location?: string;
   profile_picture_url?: string;
+  role_id?: number;
 }
 
 // User filter/query options

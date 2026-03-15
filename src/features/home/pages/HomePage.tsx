@@ -166,7 +166,7 @@ const ParticleBackground = () => {
             };
           });
 
-          const newConnections = [];
+          const newConnections: { x1: number; y1: number; x2: number; y2: number; opacity: number }[] = [];
           const maxConnections = 8;
           let connectionCount = 0;
 

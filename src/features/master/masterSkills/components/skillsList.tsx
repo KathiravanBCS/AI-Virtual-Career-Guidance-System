@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import { Badge, Button, Container, Drawer, Group, Select, Stack, Text, Textarea, TextInput } from '@mantine/core';
+import { IconPlus } from '@tabler/icons-react';
 import { DataTableColumn } from 'mantine-datatable';
 import { useNavigate } from 'react-router-dom';
 
@@ -11,7 +12,6 @@ import { useListPageState } from '@/lib/hooks/useListPageState';
 
 import { useCreateSkill, useGetAllSkills, useGetSkillById, useUpdateSkill } from '../api';
 import type { CreateSkillRequest, SkillDetail, SkillListItem, UpdateSkillRequest } from '../types';
-import { IconPlus } from '@tabler/icons-react';
 
 const SkillsList: React.FC = () => {
   const { data: skills = [], isLoading, error } = useGetAllSkills();

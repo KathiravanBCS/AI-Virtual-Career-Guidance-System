@@ -10,10 +10,10 @@ import {
   useMantineTheme,
 } from '@mantine/core';
 
-import { QuizQuestion as QuizQuestionType } from '../types';
+import type { DisplayQuestion } from '../types';
 
 interface QuizQuestionProps {
-  question: QuizQuestionType;
+  question: DisplayQuestion;
   questionNumber: number;
   totalQuestions: number;
   selectedAnswers: number[];
@@ -79,7 +79,7 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
         <Stack gap="sm">
           {question.questionType === 'multiple'
             ? // Multiple select
-              question.answers.map((answer, idx) => (
+              question.answers?.map((answer, idx) => (
                 <Checkbox
                   key={idx}
                   label={answer}
@@ -89,7 +89,7 @@ export const QuizQuestion: React.FC<QuizQuestionProps> = ({
                 />
               ))
             : // Single select
-              question.answers.map((answer, idx) => (
+              question.answers?.map((answer, idx) => (
                 <Radio
                   key={idx}
                   label={answer}

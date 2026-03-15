@@ -15,15 +15,27 @@ import {
   Title,
   useMantineTheme,
 } from '@mantine/core';
-import { IconArrowLeft, IconClock, IconFileText, IconQuestionMark } from '@tabler/icons-react';
+import {
+  IconArrowLeft,
+  IconClock,
+  IconFiles,
+  IconFileText,
+  IconHelpCircle,
+  IconQuestionMark,
+} from '@tabler/icons-react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 
 import { ListPageLayout } from '@/components/list-page/ListPageLayout';
+import { useGetFlashcardsByModule } from '@/features/flashcards/api';
+import { RecentlyCreatedList } from '@/features/flashcards/components';
 import type { GuidanceWithLearningModules } from '@/features/guidance/types';
 import { useGetLearningModules } from '@/features/learningModules/api/useGetLearningModules';
 import { useUpdateLearningModule } from '@/features/learningModules/api/useUpdateLearningModule';
-
-import ModuleContentCard from './ModuleContentCard';
+import { useGetQuizzesByModule } from '@/features/quiz/api';
+import { RecentlyCreatedList as QuizRecentlyCreatedList } from '@/features/quiz/components';
+import useActivityLogger from '@/hooks/useActivityLogger';
+import { useNotification } from '@/features/gamification/context/NotificationContext';
 
 interface LearningPathDetailViewProps {
   guidance: GuidanceWithLearningModules;
@@ -32,6 +44,7 @@ interface LearningPathDetailViewProps {
 
 export const LearningPathDetailView: React.FC<LearningPathDetailViewProps> = ({ guidance, onBack }) => {
   const theme = useMantineTheme();
+  const navigate = useNavigate();
   const primaryColor = theme.colors[theme.primaryColor]?.[6] || theme.primaryColor;
   const [selectedModuleId, setSelectedModuleId] = useState<number>(guidance.learning_modules[0]?.id || 0);
   const [showContentModal, setShowContentModal] = useState(false);
@@ -40,6 +53,18 @@ export const LearningPathDetailView: React.FC<LearningPathDetailViewProps> = ({ 
 
   const { refetch: refetchModules } = useGetLearningModules();
   const { mutate: updateModule, isPending } = useUpdateLearningModule();
+  const { showNotification } = useNotification();
+  const { logModuleComplete } = useActivityLogger({
+    showNotification,
+  });
+
+  // Fetch flashcards for selected module
+  const { data: flashcardsResponse } = useGetFlashcardsByModule(selectedModuleId);
+  const flashcardsList = Array.isArray(flashcardsResponse) ? flashcardsResponse : flashcardsResponse?.data || [];
+
+  // Fetch quizzes for selected module
+  const { data: quizzesResponse } = useGetQuizzesByModule(selectedModuleId);
+  const quizzesList = Array.isArray(quizzesResponse) ? quizzesResponse : quizzesResponse?.data || [];
 
   const selectedModule = modules.find((m) => m.id === selectedModuleId);
 
@@ -237,8 +262,7 @@ export const LearningPathDetailView: React.FC<LearningPathDetailViewProps> = ({ 
                             }}
                             onClick={() => {
                               const moduleIndex = guidance.learning_modules.findIndex((m) => m.id === selectedModuleId);
-                              setModalModuleIndex(moduleIndex);
-                              setShowContentModal(true);
+                              navigate(`/learning-path/${guidance.id}/module/${moduleIndex}`);
                             }}
                           >
                             View Content
@@ -246,7 +270,7 @@ export const LearningPathDetailView: React.FC<LearningPathDetailViewProps> = ({ 
                         </motion.div>
                         <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                           <Button
-                            onClick={() => {
+                            onClick={async () => {
                               if (selectedModule) {
                                 updateModule(
                                   {
@@ -266,6 +290,8 @@ export const LearningPathDetailView: React.FC<LearningPathDetailViewProps> = ({ 
                                         )
                                       );
                                       await refetchModules();
+                                      // Log module completion for points
+                                      await logModuleComplete(selectedModule.id);
                                     },
                                   }
                                 );
@@ -278,7 +304,7 @@ export const LearningPathDetailView: React.FC<LearningPathDetailViewProps> = ({ 
                               color: 'white',
                             }}
                           >
-                            Mark Complete
+                            {selectedModule?.completion_percentage === 100 ? '✓ Completed' : 'Mark Complete'}
                           </Button>
                         </motion.div>
                       </Group>
@@ -349,8 +375,21 @@ export const LearningPathDetailView: React.FC<LearningPathDetailViewProps> = ({ 
                   <Text mb="lg" style={{ color: '#555' }}>
                     Test your knowledge of this module with a quick quiz.
                   </Text>
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Group gap="md">
                     <Button
+                      onClick={() => {
+                        const moduleIndex = guidance.learning_modules.findIndex((m) => m.id === selectedModuleId);
+                        navigate(`/quiz`, {
+                          state: {
+                            selectedPathId: guidance.id,
+                            selectedModuleIndex: moduleIndex,
+                            from: {
+                              pathname: window.location.pathname,
+                              hash: window.location.hash,
+                            },
+                          },
+                        });
+                      }}
                       style={{
                         backgroundColor: primaryColor,
                         color: 'white',
@@ -358,39 +397,98 @@ export const LearningPathDetailView: React.FC<LearningPathDetailViewProps> = ({ 
                     >
                       Take Quiz
                     </Button>
-                  </motion.div>
+                    <Button
+                      onClick={() => {
+                        const moduleIndex = guidance.learning_modules.findIndex((m) => m.id === selectedModuleId);
+                        navigate(`/flashcards/generate`, {
+                          state: {
+                            selectedPathId: guidance.id,
+                            selectedModuleIndex: moduleIndex,
+                            from: {
+                              pathname: window.location.pathname,
+                              hash: window.location.hash,
+                            },
+                          },
+                        });
+                      }}
+                      variant="light"
+                      style={{
+                        color: primaryColor,
+                        borderColor: `${primaryColor}40`,
+                      }}
+                    >
+                      Generate Flashcards
+                    </Button>
+                  </Group>
+                </motion.div>
+
+                {/* Flashcards Section */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.4 }}
+                >
+                  <RecentlyCreatedList
+                    title={`Flashcards`}
+                    items={flashcardsList.map((fc) => ({
+                      id: fc.id,
+                      title: fc.title,
+                      code: fc.flashcard_code,
+                      status: fc.status,
+                      count: fc.items_count,
+                      createdAt: fc.created_at,
+                    }))}
+                    onItemClick={(item) =>
+                      navigate(`/flashcards/view/${item.id}`, {
+                        state: {
+                          from: {
+                            pathname: window.location.pathname,
+                            hash: window.location.hash,
+                          },
+                        },
+                      })
+                    }
+                    icon={IconFiles}
+                    countLabel="Items"
+                    emptyMessage="No flashcards created for this module yet. Click 'Generate Flashcards' to create some."
+                  />
+                </motion.div>
+
+                {/* Quizzes Section */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.5 }}
+                >
+                  <QuizRecentlyCreatedList
+                    title={`Quizzes`}
+                    items={quizzesList.map((quiz) => ({
+                      id: quiz.id,
+                      title: quiz.title,
+                      code: quiz.quiz_code,
+                      status: quiz.status,
+                      count: quiz.questions_count,
+                      createdAt: quiz.created_at,
+                    }))}
+                    onItemClick={(item) =>
+                      navigate(`/quiz/view/${item.id}`, {
+                        state: {
+                          from: {
+                            pathname: window.location.pathname,
+                            hash: window.location.hash,
+                          },
+                        },
+                      })
+                    }
+                    icon={IconHelpCircle}
+                    countLabel="Questions"
+                    emptyMessage="No quizzes created for this module yet. Click 'Generate Quiz' to create some."
+                  />
                 </motion.div>
               </Stack>
             )}
           </Grid.Col>
         </Grid>
-
-        {/* Content Modal */}
-        <Modal
-          opened={showContentModal}
-          onClose={() => setShowContentModal(false)}
-          title={selectedModule?.title}
-          size="xl"
-          radius="lg"
-          fullScreen
-        >
-          <ModuleContentCard
-            moduleTitle={selectedModule?.title || ''}
-            moduleIndex={modalModuleIndex}
-            moduleId={selectedModule?.id || 0}
-            onComplete={async () => {
-              await refetchModules();
-              if (selectedModule) {
-                setModules(
-                  modules.map((m) =>
-                    m.id === selectedModule.id ? { ...m, completion_percentage: 100, status: 'completed' } : m
-                  )
-                );
-              }
-              setShowContentModal(false);
-            }}
-          />
-        </Modal>
       </ListPageLayout>
     </Container>
   );

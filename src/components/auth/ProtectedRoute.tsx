@@ -3,13 +3,12 @@ import { ReactNode } from 'react';
 import { Center, Stack, Text } from '@mantine/core';
 import { Navigate, useLocation } from 'react-router-dom';
 
-import type { Actions, Subject } from '@/lib/casl/ability';
 import { useAbility } from '@/lib/casl/useAbility';
 
 interface ProtectedRouteProps {
   children: ReactNode;
-  requiredAction: Actions;
-  requiredSubject: Subject;
+  requiredAction: string;
+  requiredSubject: string;
   redirectTo?: string;
 }
 

@@ -3623,6 +3623,247 @@ export function setDemoMode(enabled: boolean): void {
   localStorage.setItem('use_demo_mode', enabled ? 'true' : 'false');
 }
 
+// ==================== AI CAREER GUIDANCE FUNCTIONS ====================
+
+interface UserInterests {
+  interests: string[];
+  skills?: string[];
+  experience?: string;
+  goals?: string;
+}
+
+export const generatePersonalizedCareerGuidance = async (userInterests: UserInterests) => {
+  const prompt = `Based on the following user profile, provide detailed personalized career guidance:
+
+User Interests: ${userInterests.interests.join(', ')}
+${userInterests.skills ? `Current Skills: ${userInterests.skills.join(', ')}` : ''}
+${userInterests.experience ? `Experience: ${userInterests.experience}` : ''}
+${userInterests.goals ? `Career Goals: ${userInterests.goals}` : ''}
+
+Provide a comprehensive career guidance response in JSON format with detailed analysis including:
+1. Recommended exactly 4 careers that match their profile
+2. Overall guidance message
+3. A summary of their career potential
+
+Return ONLY valid JSON with exactly 4 recommended careers in this format:
+{
+  "recommendedCareers": [
+    {
+      "careerTitle": "Career Title",
+      "description": "Detailed description of the career",
+      "jobResponsibilities": "Main responsibilities and day-to-day tasks",
+      "careerGrowthPath": "Progression path from entry-level to senior positions",
+      "industry": "Industry sector (e.g., Technology, Finance, Healthcare)",
+      "salaryMin": 50000,
+      "salaryMax": 120000,
+      "salaryCurrency": "USD",
+      "demandLevel": "High/Medium/Low",
+      "jobMarketDemandScore": 85.5,
+      "growthRate": 6.5,
+      "matchScore": 85,
+      "reasoningAlignment": "Why this matches their profile"
+    }
+  ],
+  "guidance": "Comprehensive guidance message tailored to the user's interests and skills",
+  "summary": "Brief summary of overall career potential and recommended focus areas"
+}`;
+
+  try {
+    const selectedModel = selectBestModel('career-guidance', 'educational', 'high');
+    const text = await retry(() => llmCompletion(prompt, selectedModel));
+    const result = sanitizeJSON(text);
+    return typeof result === 'string' ? JSON5.parse(result) : result;
+  } catch (error) {
+    console.error('Error generating career guidance:', error);
+    return {
+      recommendedCareers: [],
+      guidance: 'Unable to generate guidance at this time',
+      summary: 'Please try again later',
+    };
+  }
+};
+
+export const generateCareerSkillsAnalysis = async (
+  userInterests: UserInterests,
+  recommendedCareers?: Array<{ careerTitle: string; description: string }>
+) => {
+  const careersContext = recommendedCareers
+    ? `\nCareers to Analyze:\n${recommendedCareers.map((c) => `- ${c.careerTitle}`).join('\n')}`
+    : '';
+
+  const prompt = `Analyze and recommend specific skills needed for these careers:
+
+User Interests: ${userInterests.interests.join(', ')}
+${userInterests.skills ? `Current Skills: ${userInterests.skills.join(', ')}` : ''}
+${careersContext}
+
+For each career, provide exactly 4-5 essential skills with:
+1. Skill name
+2. Importance level (critical/high/medium/low)
+3. Required proficiency (beginner/intermediate/advanced/expert)
+4. Learning path recommendations
+
+Return ONLY valid JSON with skills for all careers:
+{
+  "skills": [
+    {
+      "skillName": "Skill Name",
+      "careerTitle": "Related Career",
+      "importanceLevel": "critical",
+      "proficiencyRequired": "advanced",
+      "learningPath": "How to learn this skill"
+    }
+  ]
+}`;
+
+  try {
+    const selectedModel = selectBestModel('career-skills', 'technical', 'high');
+    const text = await retry(() => llmCompletion(prompt, selectedModel));
+    const result = sanitizeJSON(text);
+    return typeof result === 'string' ? JSON5.parse(result) : result;
+  } catch (error) {
+    console.error('Error generating skills analysis:', error);
+    return { skills: [] };
+  }
+};
+
+export const generateCompanyRecommendations = async (
+  userInterests: UserInterests,
+  recommendedCareers?: Array<{ careerTitle: string; description: string }>
+) => {
+  const careersContext = recommendedCareers
+    ? `\nCareers to Analyze:\n${recommendedCareers.map((c) => `- ${c.careerTitle}`).join('\n')}`
+    : '';
+
+  const prompt = `Based on these interests, recommend companies and industries for these careers:
+
+User Interests: ${userInterests.interests.join(', ')}
+${userInterests.goals ? `Career Goals: ${userInterests.goals}` : ''}
+${careersContext}
+
+For each career, provide exactly 3-4 companies with:
+1. Company names that actively hire for these roles
+2. Industry types
+3. Hiring levels (entry-level/mid-level/senior/management)
+4. Job market opportunities
+
+Return ONLY valid JSON with companies for all careers:
+{
+  "companies": [
+    {
+      "companyName": "Company Name",
+      "careerTitle": "Related Career",
+      "industry": "Industry Name",
+      "hiringLevel": "mid-level",
+      "jobMarketOpportunity": "Description of opportunities"
+    }
+  ]
+}`;
+
+  try {
+    const selectedModel = selectBestModel('company-recommendations', 'general', 'high');
+    const text = await retry(() => llmCompletion(prompt, selectedModel));
+    const result = sanitizeJSON(text);
+    return typeof result === 'string' ? JSON5.parse(result) : result;
+  } catch (error) {
+    console.error('Error generating company recommendations:', error);
+    return { companies: [] };
+  }
+};
+
+export const generateCareerRecommendations = async (
+  userInterests: UserInterests,
+  recommendedCareers?: Array<{ careerTitle: string; description: string }>
+) => {
+  const careersContext = recommendedCareers
+    ? `\nCareers to Analyze:\n${recommendedCareers.map((c) => `- ${c.careerTitle}`).join('\n')}`
+    : '';
+
+  const prompt = `Provide detailed career recommendations for these careers:
+
+User Interests: ${userInterests.interests.join(', ')}
+${userInterests.skills ? `Current Skills: ${userInterests.skills.join(', ')}` : ''}
+${userInterests.experience ? `Experience Level: ${userInterests.experience}` : ''}
+${careersContext}
+
+For each career, provide:
+1. Career title and match score (0-100)
+2. Alignment scores: personality, skill, interest (0-100)
+3. Detailed reasoning
+4. 3-4 next steps to pursue this career
+
+Return ONLY valid JSON with recommendations for all careers:
+{
+  "recommendations": [
+    {
+      "careerTitle": "Career Title",
+      "matchScore": 85,
+      "personalityAlignment": 80,
+      "skillAlignment": 75,
+      "interestAlignment": 90,
+      "reasoning": "Detailed explanation of why this matches",
+      "nextSteps": ["Step 1", "Step 2", "Step 3"]
+    }
+  ]
+}`;
+
+  try {
+    const selectedModel = selectBestModel('recommendations', 'educational', 'high');
+    const text = await retry(() => llmCompletion(prompt, selectedModel));
+    const result = sanitizeJSON(text);
+    return typeof result === 'string' ? JSON5.parse(result) : result;
+  } catch (error) {
+    console.error('Error generating recommendations:', error);
+    return { recommendations: [] };
+  }
+};
+
+export const generateJobMarketTrendAnalysis = async (
+  userInterests: UserInterests,
+  recommendedCareers?: Array<{ careerTitle: string; description: string }>
+) => {
+  const careersContext = recommendedCareers
+    ? `\nCareers to Analyze:\n${recommendedCareers.map((c) => `- ${c.careerTitle}`).join('\n')}`
+    : '';
+
+  const prompt = `Analyze job market trends for these careers:
+
+User Interests: ${userInterests.interests.join(', ')}
+${careersContext}
+
+For each career, provide exactly 2-3 trends with:
+1. Current job market trends
+2. Industry growth forecasts
+3. Salary trends
+4. In-demand skills in the market
+5. Growth potential percentage
+
+Return ONLY valid JSON with market trends for all careers:
+{
+  "trends": [
+    {
+      "trendName": "Trend Name",
+      "careerTitle": "Related Career",
+      "trendDescription": "Description of the trend",
+      "impactLevel": "high",
+      "currentData": {"employment": 500000, "growth": "12%"},
+      "forecast": {"employmentIn5Years": 650000, "salary": "increases 3-5% yearly"},
+      "growthPotential": 85
+    }
+  ]
+}`;
+
+  try {
+    const selectedModel = selectBestModel('market-trends', 'general', 'high');
+    const text = await retry(() => llmCompletion(prompt, selectedModel));
+    const result = sanitizeJSON(text);
+    return typeof result === 'string' ? JSON5.parse(result) : result;
+  } catch (error) {
+    console.error('Error generating market trends:', error);
+    return { trends: [] };
+  }
+};
+
 export default {
   generateModuleContent,
   generateFlashcards,
@@ -3670,4 +3911,9 @@ export default {
   sendChatMessage,
   createCareerGuidanceSystemMessage,
   formatMessagesForGroq,
+  generatePersonalizedCareerGuidance,
+  generateCareerSkillsAnalysis,
+  generateCompanyRecommendations,
+  generateCareerRecommendations,
+  generateJobMarketTrendAnalysis,
 };

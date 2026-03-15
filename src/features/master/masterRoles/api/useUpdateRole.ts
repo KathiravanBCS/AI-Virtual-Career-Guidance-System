@@ -1,6 +1,8 @@
+import { notifications } from '@mantine/notifications';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { api } from '@/lib/api';
+import { getErrorMessage } from '@/lib/utils/errorHandler';
 
 import type { Role, UpdateRoleRequest } from '../types';
 
@@ -22,6 +24,18 @@ export const useUpdateRole = () => {
       // Invalidate both the specific role and the roles list
       queryClient.invalidateQueries({ queryKey: ['role', roleId] });
       queryClient.invalidateQueries({ queryKey: ['roles'] });
+      notifications.show({
+        title: 'Success',
+        message: 'Role updated successfully',
+        color: 'green',
+      });
+    },
+    onError: (error: unknown) => {
+      notifications.show({
+        title: 'Error',
+        message: getErrorMessage(error),
+        color: 'red',
+      });
     },
   });
 };

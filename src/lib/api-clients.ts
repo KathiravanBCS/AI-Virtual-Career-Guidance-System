@@ -134,12 +134,14 @@ export class ApiClient {
       });
     }
 
+    console.log(`[API.get] Fetching: ${url.toString()}`);
     const response = await fetch(url.toString(), {
       method: 'GET',
       headers: await this.getHeaders(),
       signal: AbortSignal.timeout(this.timeout),
     });
 
+    console.log(`[API.get] Response status: ${response.status} from ${path}`);
     return this.handleResponse<T>(response);
   }
 

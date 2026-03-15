@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Alert, Button, Center, Container, Group, Loader, Stack, Stepper, Text } from '@mantine/core';
 import { IconAlertCircle } from '@tabler/icons-react';
@@ -47,25 +47,38 @@ interface LearningPathResult {
 }
 
 export function GuidanceForm() {
-  const [step, setStep] = useState(0);
-  const { user } = useAuth();
-  const { user: loggedInUser } = useLoggedInUser();
-  const createLearningGuidance = useCreateLearningGuidance();
-  const [formData, setFormData] = useState<FormData>({
-    name: user?.displayName || '',
-    age: '',
-    careerGoal: '',
-    currentSkills: [],
-    interests: [],
-    assessmentAnswers: {},
-  });
+   const [step, setStep] = useState(0);
+   const { user } = useAuth();
+   const { user: loggedInUser } = useLoggedInUser();
+   const createLearningGuidance = useCreateLearningGuidance();
+   const [formData, setFormData] = useState<FormData>({
+     name: user?.displayName || '',
+     age: '',
+     careerGoal: '',
+     currentSkills: [],
+     interests: [],
+     assessmentAnswers: {},
+   });
 
-  const [skillInput, setSkillInput] = useState('');
-  const [interestInput, setInterestInput] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [learningPath, setLearningPath] = useState<LearningPathResult | null>(null);
-  const [learningGuidanceId, setLearningGuidanceId] = useState<number | null>(null);
-  const [error, setError] = useState<string | null>(null);
+   const [skillInput, setSkillInput] = useState('');
+   const [interestInput, setInterestInput] = useState('');
+   const [loading, setLoading] = useState(false);
+   const [learningPath, setLearningPath] = useState<LearningPathResult | null>(null);
+   const [learningGuidanceId, setLearningGuidanceId] = useState<number | null>(null);
+   const [error, setError] = useState<string | null>(null);
+
+   // Auto-fill career goal from sessionStorage if available
+   useEffect(() => {
+     const prefilledGoal = sessionStorage.getItem('prefilledCareerGoal');
+     if (prefilledGoal) {
+       setFormData((prev) => ({
+         ...prev,
+         careerGoal: prefilledGoal,
+       }));
+       // Clear the sessionStorage after reading
+       sessionStorage.removeItem('prefilledCareerGoal');
+     }
+   }, []);
 
   const handleAddSkill = () => {
     if (skillInput.trim() && !formData.currentSkills.includes(skillInput)) {

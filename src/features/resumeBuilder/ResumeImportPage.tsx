@@ -33,6 +33,8 @@ import { ExtractedResume } from '@/config/groq.config';
 import { processResumeFile } from '@/utils/resumeAIIntegration';
 import { estimateTokens, validateResumeFile } from '@/utils/resumeExtractor';
 
+import { useDocumentConversion } from './api/useDocumentConversion';
+
 interface ImportedResume {
   id: string;
   name: string;
@@ -52,6 +54,7 @@ export const ResumeImportPage: React.FC = () => {
   const [resumes, setResumes] = useState<ImportedResume[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { mutateAsync: convertDocument } = useDocumentConversion();
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -89,45 +92,82 @@ export const ResumeImportPage: React.FC = () => {
 
       setResumes((prev) => [...prev, newResume]);
 
-      // Process resume with AI
+      // Step 1: Convert document to text using backend
       try {
-        const result = await processResumeFile(file, true);
+        const startTime = performance.now();
+        const conversionResult = await convertDocument(file);
+        const endTime = performance.now();
+        const processingTime = endTime - startTime;
 
-        if (result.success && result.extractedData) {
-          setResumes((prev) =>
-            prev.map((resume) =>
-              resume.id === newResume.id
-                ? {
-                    ...resume,
-                    status: 'success',
-                    extractedData: result.extractedData,
-                    processingTime: result.processingTime,
-                    tokenCount: result.tokenCount,
-                  }
-                : resume
-            )
-          );
-        } else {
+        if (!conversionResult?.text) {
           setResumes((prev) =>
             prev.map((resume) =>
               resume.id === newResume.id
                 ? {
                     ...resume,
                     status: 'error',
-                    error: result.error || 'Failed to process resume',
+                    error: 'Failed to convert document to text',
+                  }
+                : resume
+            )
+          );
+          continue;
+        }
+
+        // Step 2: Process converted text with AI
+        try {
+          // Create a temporary file with the converted text for AI processing
+          const textFile = new File([conversionResult.text], file.name, { type: 'text/plain' });
+          const result = await processResumeFile(textFile, true);
+
+          if (result.success && result.extractedData) {
+            setResumes((prev) =>
+              prev.map((resume) =>
+                resume.id === newResume.id
+                  ? {
+                      ...resume,
+                      status: 'success',
+                      extractedData: result.extractedData,
+                      processingTime: processingTime + (result.processingTime || 0),
+                      tokenCount: result.tokenCount,
+                    }
+                  : resume
+              )
+            );
+          } else {
+            setResumes((prev) =>
+              prev.map((resume) =>
+                resume.id === newResume.id
+                  ? {
+                      ...resume,
+                      status: 'error',
+                      error: result.error || 'Failed to analyze resume',
+                    }
+                  : resume
+              )
+            );
+          }
+        } catch (aiError) {
+          setResumes((prev) =>
+            prev.map((resume) =>
+              resume.id === newResume.id
+                ? {
+                    ...resume,
+                    status: 'error',
+                    error: (aiError as Error).message || 'AI analysis failed',
                   }
                 : resume
             )
           );
         }
-      } catch (error) {
+      } catch (conversionError) {
         setResumes((prev) =>
           prev.map((resume) =>
             resume.id === newResume.id
               ? {
                   ...resume,
                   status: 'error',
-                  error: (error as Error).message,
+                  error: (conversionError as Error).message || 'Document conversion failed',
                 }
               : resume
           )
@@ -332,7 +372,6 @@ export const ResumeImportPage: React.FC = () => {
             onChange={handleFileSelect}
             style={{ display: 'none' }}
           />
-          
         </Paper>
 
         {/* Uploaded Resumes */}

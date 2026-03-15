@@ -1,8 +1,10 @@
-import React, { useState, useMemo, useCallback } from 'react';
-import { Select, MultiSelect, Badge, Group, Text } from '@mantine/core';
-import type { SelectProps, MultiSelectProps } from '@mantine/core';
-import { IconShield } from '@tabler/icons-react';
+import React, { useCallback, useMemo, useState } from 'react';
+
+import { Badge, Group, MultiSelect, Select, Text } from '@mantine/core';
+import type { MultiSelectProps, SelectProps } from '@mantine/core';
 import { useUncontrolled } from '@mantine/hooks';
+import { IconShield } from '@tabler/icons-react';
+
 import { useGetAllRoles } from '@/features/master/masterRoles/api/useGetAllRoles';
 import type { Role } from '@/features/master/masterRoles/types';
 
@@ -11,14 +13,16 @@ interface BaseRolePickerProps {
   excludeIds?: number[];
 }
 
-interface SingleRolePickerProps extends BaseRolePickerProps, Omit<SelectProps, 'data' | 'value' | 'onChange' | 'defaultValue'> {
+interface SingleRolePickerProps
+  extends BaseRolePickerProps, Omit<SelectProps, 'data' | 'value' | 'onChange' | 'defaultValue'> {
   multiple?: false;
   value?: number | null;
   defaultValue?: number | null;
   onChange?: (value: number | null) => void;
 }
 
-interface MultiRolePickerProps extends BaseRolePickerProps, Omit<MultiSelectProps, 'data' | 'value' | 'onChange' | 'defaultValue'> {
+interface MultiRolePickerProps
+  extends BaseRolePickerProps, Omit<MultiSelectProps, 'data' | 'value' | 'onChange' | 'defaultValue'> {
   multiple: true;
   value?: number[];
   defaultValue?: number[];
@@ -64,19 +68,22 @@ export function RolePicker(props: RolePickerProps) {
   const { data: dbRoles = [], isLoading } = useGetAllRoles();
 
   // Filter roles based on props
-  const filterRoles = useCallback((roles: Role[]) => {
-    return roles.filter(role => {
-      // Filter by active status
-      if (excludeInactive && !role.is_active) {
-        return false;
-      }
+  const filterRoles = useCallback(
+    (roles: Role[]) => {
+      return roles.filter((role) => {
+        // Filter by active status
+        if (excludeInactive && !role.is_active) {
+          return false;
+        }
 
-      // Exclude specific IDs
-      if (excludeIds.includes(role.id)) return false;
+        // Exclude specific IDs
+        if (excludeIds.includes(role.id)) return false;
 
-      return true;
-    });
-  }, [excludeInactive, excludeIds]);
+        return true;
+      });
+    },
+    [excludeInactive, excludeIds]
+  );
 
   // Filter and prepare role options
   const roleOptions = useMemo((): RoleOption[] => {
@@ -84,7 +91,7 @@ export function RolePicker(props: RolePickerProps) {
     const filteredRoles = filterRoles(dbRoles);
 
     // Convert to options format
-    const options = filteredRoles.map(role => ({
+    const options = filteredRoles.map((role) => ({
       value: String(role.id),
       label: role.role_name,
       role: role,
@@ -93,7 +100,7 @@ export function RolePicker(props: RolePickerProps) {
     // Filter by search value
     if (searchValue) {
       const searchLower = searchValue.toLowerCase();
-      return options.filter(opt => {
+      return options.filter((opt) => {
         return (
           opt.role.role_name.toLowerCase().includes(searchLower) ||
           opt.role.description.toLowerCase().includes(searchLower)
@@ -106,7 +113,7 @@ export function RolePicker(props: RolePickerProps) {
 
   // Custom render option for Mantine v8
   const renderOption: SelectProps['renderOption'] = ({ option }) => {
-    const roleOption = roleOptions.find(r => r.value === option.value);
+    const roleOption = roleOptions.find((r) => r.value === option.value);
     if (!roleOption) return <Text size="sm">{option.label}</Text>;
 
     const { role } = roleOption;
@@ -134,7 +141,7 @@ export function RolePicker(props: RolePickerProps) {
     (selectedValues: string | string[] | null) => {
       if (multiple) {
         const values = selectedValues as string[];
-        const selectedIds = values.map(val => Number(val));
+        const selectedIds = values.map((val) => Number(val));
         handleValueChange(selectedIds);
       } else {
         const val = selectedValues as string | null;
@@ -145,7 +152,7 @@ export function RolePicker(props: RolePickerProps) {
   );
 
   // Prepare data for Select/MultiSelect
-  const selectData = roleOptions.map(opt => ({
+  const selectData = roleOptions.map((opt) => ({
     value: opt.value,
     label: opt.label,
   }));
@@ -159,7 +166,7 @@ export function RolePicker(props: RolePickerProps) {
         disabled={disabled || isLoading}
         error={error}
         data={selectData}
-        value={(_value as number[] | undefined)?.map(v => String(v)) || []}
+        value={(_value as number[] | undefined)?.map((v) => String(v)) || []}
         onChange={handleChange}
         renderOption={renderOption}
         searchable

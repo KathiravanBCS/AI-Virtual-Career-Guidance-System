@@ -2,6 +2,7 @@ import { notifications } from '@mantine/notifications';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { api } from '@/lib/api';
+import { getErrorMessage } from '@/lib/utils/errorHandler';
 
 import type { CreateLearningModuleRequest, LearningModule } from '../types';
 
@@ -18,10 +19,10 @@ export const useCreateLearningModule = () => {
         color: 'green',
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       notifications.show({
         title: 'Error creating learning module',
-        message: error?.message || 'Failed to create learning module',
+        message: getErrorMessage(error),
         color: 'red',
       });
     },

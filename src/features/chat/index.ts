@@ -1,2 +1,2 @@
-export { default as ChatPage } from './pages/ChatPage';
+export { ChatPage } from './pages/ChatPage';
 export type { ChatMessage, ChatSession } from './types';

@@ -2,6 +2,7 @@ import { notifications } from '@mantine/notifications';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { api } from '@/lib/api';
+import { getErrorMessage } from '@/lib/utils/errorHandler';
 
 export const useDeleteLearningGuidance = () => {
   const queryClient = useQueryClient();
@@ -11,17 +12,17 @@ export const useDeleteLearningGuidance = () => {
       await api.learningGuidance.delete(id);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['learningGuidances'] });
+      queryClient.invalidateQueries({ queryKey: ['guidancesWithModules'] });
       notifications.show({
         title: 'Success',
         message: 'Learning guidance deleted successfully',
         color: 'green',
       });
     },
-    onError: (error: Error) => {
+    onError: (error: unknown) => {
       notifications.show({
         title: 'Error',
-        message: error.message || 'Failed to delete learning guidance',
+        message: getErrorMessage(error),
         color: 'red',
       });
     },

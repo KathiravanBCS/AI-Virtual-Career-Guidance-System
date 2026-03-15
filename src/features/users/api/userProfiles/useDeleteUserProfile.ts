@@ -2,6 +2,7 @@ import { notifications } from '@mantine/notifications';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { api } from '@/lib/api';
+import { getErrorMessage } from '@/lib/utils/errorHandler';
 
 export const useDeleteUserProfile = () => {
   const queryClient = useQueryClient();
@@ -18,10 +19,10 @@ export const useDeleteUserProfile = () => {
         color: 'green',
       });
     },
-    onError: (error: Error) => {
+    onError: (error: unknown) => {
       notifications.show({
         title: 'Error',
-        message: error.message || 'Failed to delete user profile',
+        message: getErrorMessage(error),
         color: 'red',
       });
     },
