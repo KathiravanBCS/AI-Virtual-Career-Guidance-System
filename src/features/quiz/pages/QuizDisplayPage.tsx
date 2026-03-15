@@ -19,6 +19,12 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 import { ListPageLayout } from '@/components/list-page/ListPageLayout';
 
+import { useCreateQuiz, useCreateQuizQuestion } from '../api';
+import type { CreateQuizQuestionRequest, CreateQuizRequest, Quiz } from '../types';
+import useActivityLogger from '@/hooks/useActivityLogger';
+import { useNotification } from '@/features/gamification/context/NotificationContext';
+import { useLoggedInUser } from '@/lib/auth/useLoggedInUser';
+
 interface QuizQuestion {
   id?: string | number;
   question: string;
@@ -44,9 +50,25 @@ export const QuizDisplayPage: React.FC = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, string>>({});
   const [showResults, setShowResults] = useState<boolean>(false);
+  const [isQuizSaved, setIsQuizSaved] = useState<boolean>(false);
+
+  // Hooks for creating quizzes and questions
+  const { mutate: createQuiz, isPending: isCreatingQuiz } = useCreateQuiz();
+  const { mutate: createQuizQuestion, isPending: isCreatingQuestion } = useCreateQuizQuestion();
+  const { showNotification } = useNotification();
+  const { logQuizPass, logQuizAttempt } = useActivityLogger({
+    showNotification,
+  });
+  const { user: loggedInUser } = useLoggedInUser();
 
   // Get quiz and metadata from location state
-  const { quiz: quizData = {}, topic: topicFromState = 'Quiz', moduleName = '' } = (location.state as any) || {};
+  const {
+    quiz: quizData = {},
+    topic: topicFromState = 'Quiz',
+    moduleName = '',
+    learning_module_id = 0,
+    quizId = 0,
+  } = (location.state as any) || {};
 
   // Extract questions from quiz data (handle both formats)
   const rawQuestions = (quizData.questions || quizData.data || []) as QuizQuestion[];
@@ -107,14 +129,84 @@ export const QuizDisplayPage: React.FC = () => {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setShowResults(true);
+    
+    // Calculate score
+    const correctAnswersCount = quizQuestions.filter((q, idx) => selectedAnswers[idx] === q.correctAnswer).length;
+    const percentage = Math.round((correctAnswersCount / quizQuestions.length) * 100);
+    
+    // Log activity based on score
+    const quizIdForLogging = quizId || (location.state as any)?.quiz?.id || learning_module_id;
+    
+    // Always log the attempt
+    await logQuizAttempt(quizIdForLogging);
+    
+    // If passed, log quiz pass and show notification
+    if (percentage >= 70) {
+      await logQuizPass(quizIdForLogging, percentage);
+    }
   };
 
   const handleRestart = () => {
     setCurrentQuestionIndex(0);
     setSelectedAnswers({});
     setShowResults(false);
+  };
+
+  // Generate title with module name and current date
+  const getTitleWithDate = () => {
+    const today = new Date();
+    const dateStr = today.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    const timeStr = today.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    return `${moduleName || topic} - ${dateStr} ${timeStr}`;
+  };
+
+  // Calculate total points from questions
+  const calculateTotalPoints = (questions: QuizQuestion[]): number => {
+    return questions.reduce((sum, q) => sum + (q.point || 10), 0);
+  };
+
+  const handleSaveQuiz = async () => {
+    try {
+      const quizData: CreateQuizRequest = {
+        learning_module_id: learning_module_id || 0,
+        title: getTitleWithDate(),
+        description: '',
+        topic: topic,
+        questions_count: quizQuestions.length,
+        total_points: calculateTotalPoints(quizQuestions),
+        status: 'active',
+      };
+
+      // Create the quiz first
+      createQuiz(quizData, {
+        onSuccess: (createdQuiz: Quiz) => {
+          // After quiz is created, create all the questions
+          quizQuestions.forEach((question: QuizQuestion, index: number) => {
+            const questionData: CreateQuizQuestionRequest = {
+              quiz_id: createdQuiz.id || 0,
+              question_text: question.question,
+              question_type: question.questionType || 'single',
+              answers: question.options || question.answers || [],
+              correct_answer: String(question.correctAnswer || ''),
+              explanation: question.explanation || '',
+              points: question.point || 10,
+              question_order: index + 1,
+            };
+            createQuizQuestion({
+              quizId: createdQuiz.id || 0,
+              data: questionData,
+            });
+          });
+
+          // Mark quiz as saved
+          setIsQuizSaved(true);
+        },
+      });
+    } catch (error) {
+      console.error('Error saving quiz:', error);
+    }
   };
 
   // Calculate score
@@ -131,6 +223,20 @@ export const QuizDisplayPage: React.FC = () => {
           description={`You scored ${correctAnswersCount} out of ${quizQuestions.length} (${percentage}%)`}
           actions={
             <Group>
+              {!isQuizSaved && (
+                <Button
+                  color={theme.primaryColor}
+                  onClick={handleSaveQuiz}
+                  loading={isCreatingQuiz || isCreatingQuestion}
+                >
+                  Save Quiz
+                </Button>
+              )}
+              {isQuizSaved && (
+                <Button variant="default" disabled>
+                  Quiz Saved ✓
+                </Button>
+              )}
               <Button variant="default" onClick={handleRestart}>
                 Retake Quiz
               </Button>
@@ -296,9 +402,19 @@ export const QuizDisplayPage: React.FC = () => {
         titleProps={{ fw: 700, size: 'h2' }}
         description={moduleName || `Question ${currentQuestionIndex + 1} of ${quizQuestions.length}`}
         actions={
-          <Button variant="default" onClick={() => navigate('/quiz')}>
-            Generate New
-          </Button>
+          <Group>
+            <Button
+              color={theme.primaryColor}
+              onClick={handleSaveQuiz}
+              loading={isCreatingQuiz || isCreatingQuestion}
+              disabled={isQuizSaved}
+            >
+              {isQuizSaved ? 'Quiz Saved ✓' : 'Save Quiz'}
+            </Button>
+            <Button variant="default" onClick={() => navigate('/quiz')}>
+              Generate New
+            </Button>
+          </Group>
         }
       >
         <Stack gap="lg" align="center">

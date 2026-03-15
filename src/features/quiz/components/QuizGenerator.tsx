@@ -14,19 +14,25 @@ import {
   useMantineColorScheme,
   useMantineTheme,
 } from '@mantine/core';
-import { IconAlertCircle } from '@tabler/icons-react';
-import { useNavigate } from 'react-router-dom';
+import { IconAlertCircle, IconHelpCircle } from '@tabler/icons-react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import { ListPageLayout } from '@/components/list-page/ListPageLayout';
 import groqConfig from '@/config/groq.config';
 import type { GuidanceWithLearningModules } from '@/features/guidance/types';
 import { useGetGuidancesWithModules } from '@/features/learningPath/api/useGetGuidancesWithModules';
 
+import { useGetQuizzes } from '../api';
+import { RecentlyCreatedList } from './RecentlyCreatedList';
+
 export const QuizGenerator: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const navState = (location.state as any) || {};
   const theme = useMantineTheme();
   const { colorScheme } = useMantineColorScheme();
   const { data: guidances = [], isLoading: guidancesLoading } = useGetGuidancesWithModules();
+  const { data: quizzesResponse } = useGetQuizzes();
 
   // Debug: Log guidances data
   useEffect(() => {
@@ -36,6 +42,14 @@ export const QuizGenerator: React.FC = () => {
     }
   }, [guidances]);
 
+  // Debug: Log quizzes data
+  useEffect(() => {
+    console.log('[QuizGenerator] Quizzes response:', quizzesResponse);
+  }, [quizzesResponse]);
+
+  // Get quizzes array from response (handle both formats)
+  const quizzesList = Array.isArray(quizzesResponse) ? quizzesResponse : quizzesResponse?.data || [];
+
   // State Management
   const [selectedGuidanceId, setSelectedGuidanceId] = useState<number | null>(null);
   const [selectedModuleId, setSelectedModuleId] = useState<number | null>(null);
@@ -43,6 +57,29 @@ export const QuizGenerator: React.FC = () => {
   const [numQuestions, setNumQuestions] = useState<number>(5);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Auto-select learning path and module from navigation state
+  useEffect(() => {
+    if (navState.selectedPathId && guidances.length > 0 && !selectedGuidanceId) {
+      const pathIdNum = parseInt(navState.selectedPathId.toString(), 10);
+      const guidanceToSelect = guidances.find((g) => g.id === pathIdNum);
+
+      if (guidanceToSelect) {
+        console.log('[QuizGenerator] Auto-selected guidance:', guidanceToSelect);
+        setSelectedGuidanceId(guidanceToSelect.id);
+
+        // Auto-select module if provided
+        if (navState.selectedModuleIndex !== undefined && navState.selectedModuleIndex >= 0) {
+          const module = guidanceToSelect.learning_modules?.[navState.selectedModuleIndex];
+          if (module) {
+            console.log('[QuizGenerator] Auto-selected module:', module);
+            setSelectedModuleId(module.id);
+            setQuizTopic(module.title);
+          }
+        }
+      }
+    }
+  }, [navState.selectedPathId, navState.selectedModuleIndex, guidances, selectedGuidanceId]);
 
   // Derived State
   const selectedGuidance = guidances.find((g) => g.id === selectedGuidanceId);
@@ -120,6 +157,7 @@ export const QuizGenerator: React.FC = () => {
           quiz: generatedQuiz,
           topic: generatedQuiz.topic || quizTopic,
           moduleName: selectedModule?.title,
+          learning_module_id: selectedModuleId,
         },
       });
     } catch (err) {
@@ -305,6 +343,22 @@ export const QuizGenerator: React.FC = () => {
               <Text>Generating quiz questions...</Text>
             </Stack>
           )}
+
+          {/* Recently Created Quizzes */}
+          <RecentlyCreatedList
+            title="Recently Created Quizzes"
+            items={quizzesList.map((quiz) => ({
+              id: quiz.id,
+              title: quiz.title,
+              code: quiz.quiz_code,
+              status: quiz.status,
+              count: quiz.questions_count,
+              createdAt: quiz.created_at,
+            }))}
+            onItemClick={(item) => navigate(`/quiz/view/${item.id}`)}
+            icon={IconHelpCircle}
+            countLabel="Questions"
+          />
         </Stack>
       </ListPageLayout>
     </Container>

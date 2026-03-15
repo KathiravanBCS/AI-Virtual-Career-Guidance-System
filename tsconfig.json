@@ -16,6 +16,7 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
+    "noImplicitAny": false,
     "paths": {
       "@/*": ["./src/*"],
       "@test-utils": ["./test-utils"]

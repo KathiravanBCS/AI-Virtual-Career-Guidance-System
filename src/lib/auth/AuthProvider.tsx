@@ -5,11 +5,18 @@ import { onAuthStateChanged, User } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 import { auth, db } from '@/config/firebaseConfig';
-import { defineAbility, type UserRole } from '@/lib/casl/ability';
+import { ability } from '@/lib/casl/ability';
 import { AbilityContext } from '@/lib/casl/AbilityContext';
+import { loadPermissionsFromBackend } from '@/lib/casl/useCASLIntegration';
 
 interface AuthProviderProps {
   children: ReactNode;
+}
+
+interface UserRole {
+  uid: string;
+  email?: string;
+  role: string;
 }
 
 interface AuthContextValue {
@@ -28,8 +35,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      console.log('[AuthProvider] Auth state changed. User:', firebaseUser?.email);
+
       if (firebaseUser) {
         try {
+          console.log('[AuthProvider] Setting up authenticated user:', firebaseUser.email);
+
           // Fetch or create user role from Firestore
           const userDocRef = doc(db, 'users', firebaseUser.uid);
           const userDoc = await getDoc(userDocRef);
@@ -60,19 +71,29 @@ export function AuthProvider({ children }: AuthProviderProps) {
               role: 'viewer',
             });
           }
-
-          setUser(firebaseUser);
         } catch (error) {
-          console.error('Error setting up user:', error);
+          console.error('[AuthProvider] Error setting up Firestore user:', error);
           // Still set the user even if Firestore setup fails
-          setUser(firebaseUser);
           setUserRole({
             uid: firebaseUser.uid,
             email: firebaseUser.email || undefined,
             role: 'viewer',
           });
         }
+
+        // Always set user after Firestore attempt (succeeds or fails)
+        setUser(firebaseUser);
+
+        // Load permissions from backend (ALWAYS try this, even if Firestore failed)
+        console.log('[AuthProvider] About to load permissions...');
+        try {
+          const permResponse = await loadPermissionsFromBackend();
+          console.log('[AuthProvider] Permissions loaded successfully:', permResponse);
+        } catch (permissionError) {
+          console.error('[AuthProvider] Failed to load permissions:', permissionError);
+        }
       } else {
+        console.log('[AuthProvider] User logged out');
         setUser(null);
         setUserRole(null);
       }
@@ -82,8 +103,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     return unsubscribe;
   }, []);
-
-  const ability = defineAbility(userRole);
 
   return (
     <AuthContext.Provider value={{ user, userRole, isLoading }}>

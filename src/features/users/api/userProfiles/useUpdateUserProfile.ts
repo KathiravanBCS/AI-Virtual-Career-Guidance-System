@@ -2,6 +2,7 @@ import { notifications } from '@mantine/notifications';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { api } from '@/lib/api';
+import { getErrorMessage } from '@/lib/utils/errorHandler';
 
 import type { UpdateUserProfileRequest } from '../../types';
 
@@ -33,10 +34,10 @@ export const useUpdateUserProfile = (id?: number) => {
         color: 'green',
       });
     },
-    onError: (error) => {
+    onError: (error: unknown) => {
       notifications.show({
         title: 'Error',
-        message: error.message || 'Failed to update user profile',
+        message: getErrorMessage(error),
         color: 'red',
       });
     },

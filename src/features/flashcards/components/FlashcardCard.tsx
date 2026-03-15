@@ -57,7 +57,7 @@ export const FlashcardCard: React.FC<FlashcardCardProps> = ({ card, isFlipped, o
             textAlign: 'center',
             color: colorScheme === 'dark' ? theme.colors.gray[0] : 'inherit',
           }}
-          dangerouslySetInnerHTML={{ __html: card.frontHTML }}
+          dangerouslySetInnerHTML={{ __html: card.front_html || '' }}
         />
         <Box style={{ fontSize: '12px', textAlign: 'center' }} c="dimmed">
           Click to flip ↓
@@ -99,7 +99,7 @@ export const FlashcardCard: React.FC<FlashcardCardProps> = ({ card, isFlipped, o
             textAlign: 'center',
             color: colorScheme === 'dark' ? theme.colors[theme.primaryColor][2] : theme.colors[theme.primaryColor][7],
           }}
-          dangerouslySetInnerHTML={{ __html: card.backHTML }}
+          dangerouslySetInnerHTML={{ __html: card.back_html || '' }}
         />
         <Box style={{ fontSize: '12px', textAlign: 'center' }} c="dimmed">
           Click to flip ↑

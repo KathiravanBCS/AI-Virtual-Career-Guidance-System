@@ -1,3 +1,6 @@
+/* Import Gamification Styles */
+@import './features/gamification/styles.css';
+
 /* RoosterJS editor styles */
 .rooster-editor {
   min-height: 400px;

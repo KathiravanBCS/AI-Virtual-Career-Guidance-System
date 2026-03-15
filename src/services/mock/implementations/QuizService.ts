@@ -22,7 +22,7 @@ export class QuizService {
    */
   async getQuizQuestions(moduleId: string): Promise<QuizQuestion[]> {
     const quizData = await this.getQuizData(moduleId);
-    return quizData.questions;
+    return quizData.questions as unknown as QuizQuestion[];
   }
 
   /**
@@ -49,12 +49,12 @@ export class QuizService {
     for (let i = 0; i < questions.length; i++) {
       const question = questions[i];
       const userAnswer = answers[i];
-      totalPoints += question.point;
+      totalPoints += question.point || 0;
 
       const isCorrect = this.checkAnswer(question.correctAnswer, userAnswer);
       if (isCorrect) {
         correctCount++;
-        earnedPoints += question.point;
+        earnedPoints += question.point || 0;
       }
     }
 
@@ -71,15 +71,25 @@ export class QuizService {
   /**
    * Check if answer is correct
    */
-  private checkAnswer(correctAnswer: number | number[], userAnswer: number | number[]): boolean {
+  private checkAnswer(correctAnswer: string | number | number[] | undefined, userAnswer: number | number[]): boolean {
+    // Handle string format (e.g., "0" or "0,1,2")
+    if (typeof correctAnswer === 'string') {
+      const correctIndices = correctAnswer.split(',').map((x) => parseInt(x, 10));
+      const userIndices = Array.isArray(userAnswer) ? userAnswer : [userAnswer];
+      if (correctIndices.length !== userIndices.length) return false;
+      const sortedCorrect = correctIndices.sort((a, b) => a - b);
+      const sortedUser = userIndices.sort((a, b) => a - b);
+      return sortedCorrect.every((val, idx) => val === sortedUser[idx]);
+    }
+
     if (typeof correctAnswer === 'number' && typeof userAnswer === 'number') {
       return correctAnswer === userAnswer;
     }
 
     if (Array.isArray(correctAnswer) && Array.isArray(userAnswer)) {
       if (correctAnswer.length !== userAnswer.length) return false;
-      const sortedCorrect = [...correctAnswer].sort();
-      const sortedUser = [...userAnswer].sort();
+      const sortedCorrect = [...correctAnswer].sort((a, b) => a - b);
+      const sortedUser = [...userAnswer].sort((a, b) => a - b);
       return sortedCorrect.every((val, idx) => val === sortedUser[idx]);
     }
 

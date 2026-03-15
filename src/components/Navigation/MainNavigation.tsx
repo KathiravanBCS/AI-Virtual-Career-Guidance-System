@@ -26,11 +26,11 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 import gmAicgLogo from '@/assets/gm-ai-cg-logo-back-with-name-removebg-preview.png';
 import gmAicgLogowitname from '@/assets/gm-ai-cg-logo-back-with-name-removebg-preview.png';
+import { useNavigation } from '@/hooks/useNavigation';
 import { LogoutButton } from '@/lib/auth/LogoutButton';
 import { useAuth } from '@/lib/auth/useAuth';
 
 import classes from './MainNavigation.module.css';
-import { navData } from './NavData';
 
 interface MainNavigationProps {
   collapsed?: boolean;
@@ -46,6 +46,7 @@ export function MainNavigation({ collapsed, onToggle, onLinkClick }: MainNavigat
   const isMobile = useMediaQuery(`(max-width: ${theme.breakpoints.sm})`);
 
   const { user } = useAuth();
+  const { filteredNav } = useNavigation();
 
   useEffect(() => {
     // Refresh user data to ensure photoURL is loaded
@@ -94,24 +95,24 @@ export function MainNavigation({ collapsed, onToggle, onLinkClick }: MainNavigat
   const isActive = (path: string) => location.pathname === path || location.pathname.startsWith(path + '/');
 
   // Check if any child link is active (for parent nav items)
-  const isChildActive = (item: (typeof navData)[0]) => {
+  const isChildActive = (item: (typeof filteredNav)[0]) => {
     if (!item.links) return false;
     return item.links.some((link) => isActive(link.link));
   };
 
   // Check if nav item or any of its children is active
-  const isNavItemActive = (item: (typeof navData)[0]) => {
+  const isNavItemActive = (item: (typeof filteredNav)[0]) => {
     return (item.link && isActive(item.link)) || isChildActive(item);
   };
 
   // State to control accordion - only one item open at a time
   const [openedItem, setOpenedItem] = useState<string | null>(() => {
     // Initialize with the active item
-    const activeItem = navData.find((item) => isNavItemActive(item));
+    const activeItem = filteredNav.find((item) => isNavItemActive(item));
     return activeItem?.label || null;
   });
 
-  const links = navData.map((item) => {
+  const links = filteredNav.map((item) => {
     const hasLinks = Array.isArray(item.links);
 
     if (collapsed) {

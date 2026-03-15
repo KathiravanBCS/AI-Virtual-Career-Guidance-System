@@ -117,7 +117,7 @@ export function generatePercentage(min: number = 0, max: number = 100): number {
 // Indian compliance data generators
 export function generatePAN(): string {
   const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  const pans = [];
+  const pans: string[] = [];
 
   // First 5 letters
   for (let i = 0; i < 5; i++) {

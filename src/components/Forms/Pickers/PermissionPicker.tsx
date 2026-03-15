@@ -1,8 +1,10 @@
-import React, { useState, useMemo, useCallback } from 'react';
-import { Select, MultiSelect, Badge, Group, Text } from '@mantine/core';
-import type { SelectProps, MultiSelectProps } from '@mantine/core';
-import { IconLock } from '@tabler/icons-react';
+import React, { useCallback, useMemo, useState } from 'react';
+
+import { Badge, Group, MultiSelect, Select, Text } from '@mantine/core';
+import type { MultiSelectProps, SelectProps } from '@mantine/core';
 import { useUncontrolled } from '@mantine/hooks';
+import { IconLock } from '@tabler/icons-react';
+
 import { useGetAllPermissions } from '@/features/master/masterPermissions/api/useGetAllPermissions';
 import type { Permission } from '@/features/master/masterPermissions/types';
 
@@ -11,14 +13,16 @@ interface BasePermissionPickerProps {
   excludeIds?: number[];
 }
 
-interface SinglePermissionPickerProps extends BasePermissionPickerProps, Omit<SelectProps, 'data' | 'value' | 'onChange' | 'defaultValue'> {
+interface SinglePermissionPickerProps
+  extends BasePermissionPickerProps, Omit<SelectProps, 'data' | 'value' | 'onChange' | 'defaultValue'> {
   multiple?: false;
   value?: number | null;
   defaultValue?: number | null;
   onChange?: (value: number | null) => void;
 }
 
-interface MultiPermissionPickerProps extends BasePermissionPickerProps, Omit<MultiSelectProps, 'data' | 'value' | 'onChange' | 'defaultValue'> {
+interface MultiPermissionPickerProps
+  extends BasePermissionPickerProps, Omit<MultiSelectProps, 'data' | 'value' | 'onChange' | 'defaultValue'> {
   multiple: true;
   value?: number[];
   defaultValue?: number[];
@@ -64,19 +68,22 @@ export function PermissionPicker(props: PermissionPickerProps) {
   const { data: dbPermissions = [], isLoading } = useGetAllPermissions();
 
   // Filter permissions based on props
-  const filterPermissions = useCallback((permissions: Permission[]) => {
-    return permissions.filter(permission => {
-      // Filter by active status
-      if (excludeInactive && !permission.is_active) {
-        return false;
-      }
+  const filterPermissions = useCallback(
+    (permissions: Permission[]) => {
+      return permissions.filter((permission) => {
+        // Filter by active status
+        if (excludeInactive && !permission.is_active) {
+          return false;
+        }
 
-      // Exclude specific IDs
-      if (excludeIds.includes(permission.id)) return false;
+        // Exclude specific IDs
+        if (excludeIds.includes(permission.id)) return false;
 
-      return true;
-    });
-  }, [excludeInactive, excludeIds]);
+        return true;
+      });
+    },
+    [excludeInactive, excludeIds]
+  );
 
   // Filter and prepare permission options
   const permissionOptions = useMemo((): PermissionOption[] => {
@@ -84,7 +91,7 @@ export function PermissionPicker(props: PermissionPickerProps) {
     const filteredPermissions = filterPermissions(dbPermissions);
 
     // Convert to options format
-    const options = filteredPermissions.map(permission => ({
+    const options = filteredPermissions.map((permission) => ({
       value: String(permission.id),
       label: permission.action,
       permission: permission,
@@ -93,7 +100,7 @@ export function PermissionPicker(props: PermissionPickerProps) {
     // Filter by search value
     if (searchValue) {
       const searchLower = searchValue.toLowerCase();
-      return options.filter(opt => {
+      return options.filter((opt) => {
         return (
           opt.permission.action.toLowerCase().includes(searchLower) ||
           opt.permission.description.toLowerCase().includes(searchLower)
@@ -106,7 +113,7 @@ export function PermissionPicker(props: PermissionPickerProps) {
 
   // Custom render option for Mantine v8
   const renderOption: SelectProps['renderOption'] = ({ option }) => {
-    const permissionOption = permissionOptions.find(p => p.value === option.value);
+    const permissionOption = permissionOptions.find((p) => p.value === option.value);
     if (!permissionOption) return <Text size="sm">{option.label}</Text>;
 
     const { permission } = permissionOption;
@@ -134,7 +141,7 @@ export function PermissionPicker(props: PermissionPickerProps) {
     (selectedValues: string | string[] | null) => {
       if (multiple) {
         const values = selectedValues as string[];
-        const selectedIds = values.map(val => Number(val));
+        const selectedIds = values.map((val) => Number(val));
         handleValueChange(selectedIds);
       } else {
         const val = selectedValues as string | null;
@@ -145,7 +152,7 @@ export function PermissionPicker(props: PermissionPickerProps) {
   );
 
   // Prepare data for Select/MultiSelect
-  const selectData = permissionOptions.map(opt => ({
+  const selectData = permissionOptions.map((opt) => ({
     value: opt.value,
     label: opt.label,
   }));
@@ -159,7 +166,7 @@ export function PermissionPicker(props: PermissionPickerProps) {
         disabled={disabled || isLoading}
         error={error}
         data={selectData}
-        value={(_value as number[] | undefined)?.map(v => String(v)) || []}
+        value={(_value as number[] | undefined)?.map((v) => String(v)) || []}
         onChange={handleChange}
         renderOption={renderOption}
         searchable

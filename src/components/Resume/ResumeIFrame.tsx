@@ -6,6 +6,7 @@ import { PDFViewer } from '@react-pdf/renderer';
 import Frame from 'react-frame-component';
 
 import { getAllFontFamiliesToLoad } from '@/components/fonts/lib';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import {
   A4_HEIGHT_PX,
   A4_WIDTH_PT,
@@ -50,8 +51,11 @@ const getIframeInitialContent = (isA4: boolean) => {
 };
 
 /**
- * Iframe is used here for style isolation, since react pdf uses pt unit.
- * It creates a sandbox document body that uses letter/A4 pt size as width.
+ * Iframe-based resume renderer with optional PDFViewer support.
+ *
+ * By default, uses iframe for style isolation (since react-pdf uses pt units).
+ * When enablePDFViewer is true, renders with PDFViewer for real A4 page boundaries
+ * and automatic page breaks. Uses debouncing to prevent excessive re-renders.
  */
 const ResumeIframe = ({
   documentSize,
@@ -59,18 +63,53 @@ const ResumeIframe = ({
   children,
   enablePDFViewer = false,
   hideScrollbar = false,
+  debounceDelay = 500,
 }: {
   documentSize: string;
   scale: number;
   children: React.ReactNode;
   enablePDFViewer?: boolean;
   hideScrollbar?: boolean;
+  debounceDelay?: number;
 }) => {
   const isA4 = documentSize === 'A4';
   const iframeInitialContent = useMemo(() => getIframeInitialContent(isA4), [isA4]);
 
+  // Debounce children to prevent excessive PDFViewer re-renders on every keystroke
+  // Default 250ms provides good balance between responsiveness and performance
+  const debouncedChildren = useDebouncedValue(children, debounceDelay ?? 250);
+
   if (enablePDFViewer) {
-    return <DynamicPDFViewer className="h-full w-full">{children as any}</DynamicPDFViewer>;
+    const width = isA4 ? A4_WIDTH_PX : LETTER_WIDTH_PX;
+    const height = isA4 ? A4_HEIGHT_PX : LETTER_HEIGHT_PX;
+
+    return (
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'flex-start',
+          width: '100%',
+          height: '100%',
+          padding: '0',
+          margin: '0',
+        }}
+      >
+        <div
+          style={{
+            width: `${width}px`,
+            height: `${height}px`,
+            transform: `scale(${scale})`,
+            transformOrigin: 'top center',
+            flexShrink: 0,
+          }}
+        >
+          <DynamicPDFViewer width={`${width}px`} height={`${height}px`} showToolbar={false}>
+            {debouncedChildren as any}
+          </DynamicPDFViewer>
+        </div>
+      </div>
+    );
   }
   const width = isA4 ? A4_WIDTH_PX : LETTER_WIDTH_PX;
   const height = isA4 ? A4_HEIGHT_PX : LETTER_HEIGHT_PX;

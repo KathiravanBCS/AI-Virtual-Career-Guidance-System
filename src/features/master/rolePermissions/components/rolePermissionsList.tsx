@@ -1,12 +1,13 @@
 import { useState } from 'react';
 
 import { Badge, Button, Checkbox, Container, Drawer, Group, Stack, Text } from '@mantine/core';
+import { IconPlus } from '@tabler/icons-react';
 import { DataTableColumn } from 'mantine-datatable';
 
+import { PermissionPicker, RolePicker } from '@/components/Forms/Pickers';
 import { ListPageLayout } from '@/components/list-page/ListPageLayout';
 import { ColumnDefinition } from '@/components/tables/ColumnSelector';
 import { ListTable } from '@/components/tables/ListTable';
-import { RolePicker, PermissionPicker } from '@/components/Forms/Pickers';
 import { useListPageState } from '@/lib/hooks/useListPageState';
 
 import {
@@ -17,7 +18,6 @@ import {
   useUpdateRolePermission,
 } from '../api';
 import type { CreateRolePermissionRequest, RolePermission, UpdateRolePermissionRequest } from '../types';
-import { IconPlus } from '@tabler/icons-react';
 
 const RolePermissionsList: React.FC = () => {
   const { data: rolePermissions = [], isLoading, error } = useGetAllRolePermissions();
@@ -27,9 +27,7 @@ const RolePermissionsList: React.FC = () => {
   const [isCreateMode, setIsCreateMode] = useState(false);
   const [formData, setFormData] = useState<Partial<UpdateRolePermissionRequest | CreateRolePermissionRequest>>({});
 
-  const { data: rolePermissionDetail, isLoading: isLoadingDetail } = useGetRolePermissionById(
-    selectedRolePermissionId
-  );
+  const { data: rolePermissionDetail, isLoading: isLoadingDetail } = useGetRolePermissionById(selectedRolePermissionId);
   const updateRolePermission = useUpdateRolePermission();
   const createRolePermission = useCreateRolePermission();
   const deleteRolePermission = useDeleteRolePermission();
@@ -263,62 +261,62 @@ const RolePermissionsList: React.FC = () => {
                     <Badge color={rolePermissionDetail.is_granted ? 'green' : 'red'} variant="light">
                       {rolePermissionDetail.is_granted ? 'Granted' : 'Denied'}
                     </Badge>
-                     <Button variant="light" onClick={handleEditClick}>
-                       Edit
-                     </Button>
-                   </Group>
+                    <Button variant="light" onClick={handleEditClick}>
+                      Edit
+                    </Button>
+                  </Group>
 
-                   <div style={{ marginBottom: '1.5rem' }}>
-                     <Text size="xs" c="dimmed" fw={500} tt="uppercase" mb={4}>
-                       Role
-                     </Text>
-                     <Text size="lg" fw={500}>
-                       {rolePermissionDetail.role.role_name}
-                     </Text>
-                     <Text size="sm" c="dimmed">
-                       {rolePermissionDetail.role.description}
-                     </Text>
-                   </div>
+                  <div style={{ marginBottom: '1.5rem' }}>
+                    <Text size="xs" c="dimmed" fw={500} tt="uppercase" mb={4}>
+                      Role
+                    </Text>
+                    <Text size="lg" fw={500}>
+                      {rolePermissionDetail.role.role_name}
+                    </Text>
+                    <Text size="sm" c="dimmed">
+                      {rolePermissionDetail.role.description}
+                    </Text>
+                  </div>
 
-                   <div style={{ marginBottom: '1.5rem' }}>
-                     <Text size="xs" c="dimmed" fw={500} tt="uppercase" mb={4}>
-                       Permission
-                     </Text>
-                     <Text size="lg" fw={500}>
-                       {rolePermissionDetail.permission.action}
-                     </Text>
-                     <Text size="sm" c="dimmed">
-                       {rolePermissionDetail.permission.description}
-                     </Text>
-                   </div>
+                  <div style={{ marginBottom: '1.5rem' }}>
+                    <Text size="xs" c="dimmed" fw={500} tt="uppercase" mb={4}>
+                      Permission
+                    </Text>
+                    <Text size="lg" fw={500}>
+                      {rolePermissionDetail.permission.action}
+                    </Text>
+                    <Text size="sm" c="dimmed">
+                      {rolePermissionDetail.permission.description}
+                    </Text>
+                  </div>
 
-                   <div style={{ marginBottom: '1.5rem' }}>
-                     <Text size="xs" c="dimmed" fw={500} tt="uppercase" mb={4}>
-                       Created By
-                     </Text>
-                     <Text size="md">{rolePermissionDetail.created_by}</Text>
-                   </div>
+                  <div style={{ marginBottom: '1.5rem' }}>
+                    <Text size="xs" c="dimmed" fw={500} tt="uppercase" mb={4}>
+                      Created By
+                    </Text>
+                    <Text size="md">{rolePermissionDetail.created_by}</Text>
+                  </div>
 
-                   <div style={{ marginBottom: '1.5rem' }}>
-                     <Text size="xs" c="dimmed" fw={500} tt="uppercase" mb={4}>
-                       Created At
-                     </Text>
-                     <Text size="md">{new Date(rolePermissionDetail.created_at).toLocaleString()}</Text>
-                   </div>
+                  <div style={{ marginBottom: '1.5rem' }}>
+                    <Text size="xs" c="dimmed" fw={500} tt="uppercase" mb={4}>
+                      Created At
+                    </Text>
+                    <Text size="md">{new Date(rolePermissionDetail.created_at).toLocaleString()}</Text>
+                  </div>
 
-                   {rolePermissionDetail.updated_by && (
-                     <div style={{ marginBottom: '1.5rem' }}>
-                       <Text size="xs" c="dimmed" fw={500} tt="uppercase" mb={4}>
-                         Updated By
-                       </Text>
-                       <Text size="md">{rolePermissionDetail.updated_by}</Text>
-                     </div>
-                   )}
+                  {rolePermissionDetail.updated_by && (
+                    <div style={{ marginBottom: '1.5rem' }}>
+                      <Text size="xs" c="dimmed" fw={500} tt="uppercase" mb={4}>
+                        Updated By
+                      </Text>
+                      <Text size="md">{rolePermissionDetail.updated_by}</Text>
+                    </div>
+                  )}
 
-                   <Button fullWidth color="red" variant="light" onClick={handleDeleteRolePermission} mt="xl">
-                     Delete Assignment
-                   </Button>
-                 </div>
+                  <Button fullWidth color="red" variant="light" onClick={handleDeleteRolePermission} mt="xl">
+                    Delete Assignment
+                  </Button>
+                </div>
               ) : (
                 <form
                   onSubmit={(e) => {

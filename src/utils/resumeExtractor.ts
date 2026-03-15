@@ -375,7 +375,7 @@ export const processBatchResumes = async (
   files: File[],
   onProgress?: (current: number, total: number) => void
 ): Promise<{ file: File; text: string; error?: string }[]> => {
-  const results = [];
+  const results: { file: File; text: string; error?: string }[] = [];
 
   for (let i = 0; i < files.length; i++) {
     try {

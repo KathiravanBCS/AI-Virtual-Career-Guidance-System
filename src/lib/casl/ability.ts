@@ -1,69 +1,48 @@
-import { AbilityBuilder, createMongoAbility } from '@casl/ability';
+/**
+ * CASL Ability Instance
+ * Creates and manages user permissions using CASL
+ */
 
-export type Subject =
-  | 'GuidanceSession'
-  | 'Assessment'
-  | 'LearningResource'
-  | 'Career'
-  | 'Recommendation'
-  | 'Settings'
-  | 'All';
+import { createMongoAbility } from '@casl/ability';
 
-export type Actions = 'create' | 'read' | 'update' | 'delete' | 'manage';
+import type { CASLRule } from './types';
 
-export interface UserRole {
-  role: 'admin' | 'mentor' | 'user' | 'viewer';
-  uid: string;
-  email?: string;
-}
+export type AppAbility = ReturnType<typeof createMongoAbility>;
 
-export function defineAbility(user: UserRole | null) {
-  const { can, cannot, build } = new AbilityBuilder(createMongoAbility);
+/**
+ * Create a new ability instance with optional rules
+ */
+export const createAppAbility = (rules: any[] = []): AppAbility => {
+  return createMongoAbility(rules);
+};
 
-  if (!user) {
-    // Guest user - no permissions
-    return build();
-  }
+// Global ability instance
+export const ability = createAppAbility();
 
-  if (user.role === 'admin') {
-    // Admins can do everything
-    can('manage', 'All');
-  } else if (user.role === 'mentor') {
-    // Mentors can manage guidance sessions and provide recommendations
-    can('create', 'GuidanceSession');
-    can('read', 'GuidanceSession');
-    can('update', 'GuidanceSession');
-    can('delete', 'GuidanceSession');
+/**
+ * Update ability rules
+ */
+export const updateAbility = (rules: any[]): void => {
+  ability.update(rules as any);
+};
 
-    can('create', 'Recommendation');
-    can('read', 'Recommendation');
-    can('update', 'Recommendation');
-    can('delete', 'Recommendation');
+/**
+ * Reset ability to empty rules
+ */
+export const resetAbility = (): void => {
+  ability.update([]);
+};
 
-    can('read', 'Assessment');
-    can('read', 'LearningResource');
-    can('read', 'Career');
-    can('read', 'Settings');
-  } else if (user.role === 'user') {
-    // Regular users can create and manage their own guidance sessions
-    can('create', 'GuidanceSession');
-    can('read', 'GuidanceSession');
-    can('update', 'GuidanceSession', { userId: user.uid });
-    can('delete', 'GuidanceSession', { userId: user.uid });
-    cannot('delete', 'GuidanceSession', { isCompleted: true });
+/**
+ * Check if user can perform action on subject
+ */
+export const can = (action: string, subject: string): boolean => {
+  return ability.can(action, subject);
+};
 
-    can('read', 'Assessment');
-    can('read', 'LearningResource');
-    can('read', 'Career');
-    can('read', 'Recommendation');
-  } else if (user.role === 'viewer') {
-    // Viewers can only read
-    can('read', 'GuidanceSession');
-    can('read', 'Assessment');
-    can('read', 'LearningResource');
-    can('read', 'Career');
-    can('read', 'Recommendation');
-  }
-
-  return build();
-}
+/**
+ * Check if user cannot perform action on subject
+ */
+export const cannot = (action: string, subject: string): boolean => {
+  return ability.cannot(action, subject);
+};

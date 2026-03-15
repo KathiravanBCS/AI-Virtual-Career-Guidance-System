@@ -3,12 +3,11 @@ import { ReactNode } from 'react';
 import { Alert } from '@mantine/core';
 import { IconAlertCircle } from '@tabler/icons-react';
 
-import type { Actions, Subject } from '@/lib/casl/ability';
 import { useAbility } from '@/lib/casl/useAbility';
 
 interface ProtectedActionProps {
-  action: Actions;
-  subject: Subject;
+  action: string;
+  subject: string;
   children: ReactNode;
   fallback?: ReactNode;
 }

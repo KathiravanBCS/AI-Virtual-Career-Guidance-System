@@ -1,6 +1,8 @@
+import { notifications } from '@mantine/notifications';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { api } from '@/lib/api';
+import { getErrorMessage } from '@/lib/utils/errorHandler';
 
 import type { SkillDetail, UpdateSkillRequest } from '../types';
 
@@ -22,6 +24,18 @@ export const useUpdateSkill = () => {
       // Invalidate both the specific skill and the skills list
       queryClient.invalidateQueries({ queryKey: ['skill', skillId] });
       queryClient.invalidateQueries({ queryKey: ['skills'] });
+      notifications.show({
+        title: 'Success',
+        message: 'Skill updated successfully',
+        color: 'green',
+      });
+    },
+    onError: (error: unknown) => {
+      notifications.show({
+        title: 'Error',
+        message: getErrorMessage(error),
+        color: 'red',
+      });
     },
   });
 };

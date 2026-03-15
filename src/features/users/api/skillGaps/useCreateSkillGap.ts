@@ -2,6 +2,7 @@ import { notifications } from '@mantine/notifications';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { api } from '@/lib/api';
+import { getErrorMessage } from '@/lib/utils/errorHandler';
 
 import type { CreateSkillGapRequest } from '../../types';
 
@@ -22,10 +23,10 @@ export const useCreateSkillGap = () => {
         color: 'green',
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       notifications.show({
         title: 'Error creating skill gap',
-        message: error?.message || 'Failed to create skill gap',
+        message: getErrorMessage(error),
         color: 'red',
       });
     },

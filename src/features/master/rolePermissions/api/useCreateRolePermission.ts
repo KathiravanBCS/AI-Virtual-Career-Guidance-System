@@ -1,6 +1,8 @@
+import { notifications } from '@mantine/notifications';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { api } from '@/lib/api';
+import { getErrorMessage } from '@/lib/utils/errorHandler';
 
 import type { CreateRolePermissionRequest, RolePermission } from '../types';
 
@@ -21,6 +23,18 @@ export const useCreateRolePermission = () => {
     onSuccess: () => {
       // Invalidate role permissions list to refetch
       queryClient.invalidateQueries({ queryKey: ['rolePermissions'] });
+      notifications.show({
+        title: 'Success',
+        message: 'Role permission created successfully',
+        color: 'green',
+      });
+    },
+    onError: (error: unknown) => {
+      notifications.show({
+        title: 'Error',
+        message: getErrorMessage(error),
+        color: 'red',
+      });
     },
   });
 };

@@ -1,5 +1,6 @@
 import { Button, FileInput, Group, PasswordInput, Stack, TextInput } from '@mantine/core';
 import { useForm } from '@mantine/form';
+
 import { RolePicker } from '@/components/Forms/Pickers';
 
 interface UserFormData {
@@ -78,11 +79,7 @@ export function UserForm({ onSubmit, initialValues, isLoading = false }: UserFor
 
         <PasswordInput label="Password" placeholder="Your password" {...form.getInputProps('password')} />
 
-        <RolePicker
-          value={form.values.role_id}
-          onChange={(val) => form.setFieldValue('role_id', val)}
-          required
-        />
+        <RolePicker value={form.values.role_id} onChange={(val) => form.setFieldValue('role_id', val)} required />
 
         <Group justify="flex-end">
           <Button type="submit" loading={isLoading}>

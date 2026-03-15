@@ -7,10 +7,7 @@
  * const data = normalizeResponse(apiResponse);
  * const data = normalizeResponse(apiResponse, []);
  */
-export function normalizeResponse<T>(
-  response: T[] | { data: T[] } | null | undefined,
-  defaultValue: T[] = []
-): T[] {
+export function normalizeResponse<T>(response: T[] | { data: T[] } | null | undefined, defaultValue: T[] = []): T[] {
   if (!response) return defaultValue;
   if (Array.isArray(response)) return response;
   if (response && typeof response === 'object' && 'data' in response) {

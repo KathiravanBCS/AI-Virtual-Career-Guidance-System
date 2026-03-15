@@ -2,6 +2,7 @@ import { notifications } from '@mantine/notifications';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { api } from '@/lib/api';
+import { getErrorMessage } from '@/lib/utils/errorHandler';
 
 import type { LearningModule, UpdateLearningModuleRequest } from '../types';
 
@@ -20,10 +21,10 @@ export const useUpdateLearningModule = () => {
         color: 'green',
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       notifications.show({
         title: 'Error updating learning module',
-        message: error?.message || 'Failed to update learning module',
+        message: getErrorMessage(error),
         color: 'red',
       });
     },

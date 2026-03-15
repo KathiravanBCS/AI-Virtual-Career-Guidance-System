@@ -8,7 +8,7 @@
  * cx('px-1', false && 'mt-2'); // => 'px-1'
  */
 export const cx = (...classes: Array<string | boolean | undefined>) => {
-  const newClasses = [];
+  const newClasses: string[] = [];
   for (const c of classes) {
     if (typeof c === 'string') {
       newClasses.push(c.trim());

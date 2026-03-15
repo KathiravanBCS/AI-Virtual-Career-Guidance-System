@@ -2,6 +2,8 @@ import { Alert, Box, Button, Grid, Stack, Text, TextInput } from '@mantine/core'
 import { useForm } from '@mantine/form';
 import { IconAlertCircle } from '@tabler/icons-react';
 
+import { RolePicker } from '@/components/Forms/Pickers';
+
 import { useUpdateUser } from '../../api/users/useUpdateUser';
 import type { User } from '../../types';
 
@@ -20,6 +22,7 @@ export const UserBasicInfoTab = ({ user }: UserBasicInfoTabProps) => {
       phone: user.phone || '',
       location: user.location || '',
       profile_picture_url: user.profile_picture_url || '',
+      role_id: user.role_id || undefined,
     },
     validate: {
       first_name: (value) => (!value ? 'First name is required' : null),
@@ -79,6 +82,13 @@ export const UserBasicInfoTab = ({ user }: UserBasicInfoTabProps) => {
               label="Profile Picture URL"
               placeholder="Enter profile picture URL"
               {...form.getInputProps('profile_picture_url')}
+            />
+          </Grid.Col>
+
+          <Grid.Col span={{ base: 12, md: 6 }}>
+            <RolePicker
+              value={form.values.role_id}
+              onChange={(val) => form.setFieldValue('role_id', val || undefined)}
             />
           </Grid.Col>
         </Grid>

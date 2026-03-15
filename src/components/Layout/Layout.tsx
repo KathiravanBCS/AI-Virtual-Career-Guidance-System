@@ -90,7 +90,7 @@ export function Layout() {
                 flex: 1,
                 overflow: 'auto',
                 padding: isGuidancePage ? 0 : 12,
-                backgroundColor: colorScheme === 'dark' ? theme.colors.dark[7] : '#fafbfc',
+                backgroundColor: colorScheme === 'dark' ? theme.colors.dark[7] : '#ffffff',
               }}
             >
               <Outlet context={{ isChatDrawerOpen, setIsChatDrawerOpen }} />

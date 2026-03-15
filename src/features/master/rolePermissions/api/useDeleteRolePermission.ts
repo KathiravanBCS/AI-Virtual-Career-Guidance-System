@@ -1,6 +1,8 @@
+import { notifications } from '@mantine/notifications';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { api } from '@/lib/api';
+import { getErrorMessage } from '@/lib/utils/errorHandler';
 
 /**
  * Hook to delete a role permission
@@ -20,6 +22,18 @@ export const useDeleteRolePermission = () => {
       // Invalidate both the specific role permission and the role permissions list
       queryClient.invalidateQueries({ queryKey: ['rolePermission', rolePermissionId] });
       queryClient.invalidateQueries({ queryKey: ['rolePermissions'] });
+      notifications.show({
+        title: 'Success',
+        message: 'Role permission deleted successfully',
+        color: 'green',
+      });
+    },
+    onError: (error: unknown) => {
+      notifications.show({
+        title: 'Error',
+        message: getErrorMessage(error),
+        color: 'red',
+      });
     },
   });
 };

@@ -2,6 +2,7 @@ import { notifications } from '@mantine/notifications';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { api } from '@/lib/api';
+import { getErrorMessage } from '@/lib/utils/errorHandler';
 
 export const useDeleteLearningModule = () => {
   const queryClient = useQueryClient();
@@ -18,10 +19,10 @@ export const useDeleteLearningModule = () => {
         color: 'green',
       });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       notifications.show({
         title: 'Error deleting learning module',
-        message: error?.message || 'Failed to delete learning module',
+        message: getErrorMessage(error),
         color: 'red',
       });
     },

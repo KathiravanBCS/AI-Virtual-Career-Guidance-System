@@ -31,9 +31,11 @@ import { useResumeStore } from '@/lib/store/useResumeStore';
 import { useSettingsStore } from '@/lib/store/useSettingsStore';
 import type { Settings } from '@/lib/store/useSettingsStore';
 
-const ResumePDFWrapper = memo(({ resume, settings }: { resume: any; settings: Settings }) => (
-  <ResumePDF resume={resume} settings={settings} isPDF={false} />
-));
+const ResumePDFWrapper = memo(
+  ({ resume, settings, isPDF = false }: { resume: any; settings: Settings; isPDF?: boolean }) => (
+    <ResumePDF resume={resume} settings={settings} isPDF={isPDF} />
+  )
+);
 ResumePDFWrapper.displayName = 'ResumePDFWrapper';
 
 const ResumePreviewContent = () => {
@@ -236,10 +238,11 @@ const ResumePreviewContent = () => {
           <ResumeIframeCSR
             documentSize={settings.documentSize}
             scale={scale / 100}
-            enablePDFViewer={DEBUG_RESUME_PDF_FLAG}
+            enablePDFViewer={true}
             hideScrollbar={true}
+            debounceDelay={250}
           >
-            <ResumePDFWrapper resume={resume} settings={settings} />
+            <ResumePDFWrapper resume={resume} settings={settings} isPDF={true} />
           </ResumeIframeCSR>
         </ScrollArea>
       </Box>

@@ -14,6 +14,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './lib/auth/AuthProvider';
 import { Router } from './Router';
 import { ThemeProvider } from './theme/ThemeProvider';
+import { NotificationProvider } from './features/gamification/context/NotificationContext';
+import NotificationContainer from './features/gamification/components/NotificationContainer';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -29,10 +31,13 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <ThemeProvider defaultTheme="default">
-          <ModalsProvider>
-            <Notifications position="bottom-right" />
-            <Router />
-          </ModalsProvider>
+          <NotificationProvider>
+            <ModalsProvider>
+              <Notifications position="bottom-right" />
+              <NotificationContainer />
+              <Router />
+            </ModalsProvider>
+          </NotificationProvider>
         </ThemeProvider>
       </AuthProvider>
     </QueryClientProvider>

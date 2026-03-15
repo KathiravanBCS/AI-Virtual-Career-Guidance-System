@@ -1,262 +1,559 @@
-import { Box, Group, Loader, Paper, Text } from '@mantine/core';
-import ReactMarkdown from 'react-markdown';
-import rehypeKatex from 'rehype-katex';
-import remarkGfm from 'remark-gfm';
-import remarkMath from 'remark-math';
+import { useState } from 'react';
 
-import 'katex/dist/katex.min.css';
+import {
+  ActionIcon,
+  Avatar,
+  Badge,
+  Box,
+  Code,
+  Group,
+  Paper,
+  Stack,
+  Text,
+  Tooltip,
+  useMantineColorScheme,
+  useMantineTheme,
+} from '@mantine/core';
+import {
+  IconCheck,
+  IconCopy,
+  IconDotsVertical,
+  IconSparkles,
+  IconThumbDown,
+  IconThumbUp,
+  IconUser,
+} from '@tabler/icons-react';
 
-import agentLogo from '../../../assets/gm-ai-cg-fav.png';
-import { ChatMessage as ChatMessageType } from '../types';
-
-import './chat-message-styles.css';
+import type { ChatMessage as ChatMessageType } from '../types';
 
 interface ChatMessageProps {
   message: ChatMessageType;
 }
 
-const markdownComponents = {
-  h1: ({ ...props }: any) => (
-    <h1
-      style={{
-        fontSize: '1.75rem',
-        fontWeight: '700',
-        marginBottom: '1rem',
-        marginTop: '1.5rem',
-        borderBottom: '2px solid rgba(0,0,0,0.1)',
-        paddingBottom: '0.5rem',
-      }}
-      {...props}
-    />
-  ),
-  h2: ({ ...props }: any) => (
-    <h2
-      style={{
-        fontSize: '1.4rem',
-        fontWeight: '600',
-        marginBottom: '0.75rem',
-        marginTop: '1.25rem',
-        color: '#1a1a1a',
-      }}
-      {...props}
-    />
-  ),
-  h3: ({ ...props }: any) => (
-    <h3
-      style={{
-        fontSize: '1.1rem',
-        fontWeight: '600',
-        marginBottom: '0.5rem',
-        marginTop: '0.75rem',
-        color: '#333',
-      }}
-      {...props}
-    />
-  ),
-  p: ({ ...props }: any) => (
-    <p
-      style={{
-        marginBottom: '1rem',
-        lineHeight: '1.7',
-        fontSize: '0.95rem',
-        wordWrap: 'break-word',
-      }}
-      {...props}
-    />
-  ),
-  ul: ({ ...props }: any) => (
-    <ul
-      style={{
-        marginLeft: '1.75rem',
-        marginBottom: '1rem',
-        listStyleType: 'disc',
-      }}
-      {...props}
-    />
-  ),
-  ol: ({ ...props }: any) => (
-    <ol
-      style={{
-        marginLeft: '1.75rem',
-        marginBottom: '1rem',
-        listStyleType: 'decimal',
-      }}
-      {...props}
-    />
-  ),
-  li: ({ ...props }: any) => (
-    <li
-      style={{
-        marginBottom: '0.5rem',
-        lineHeight: '1.6',
-        fontSize: '0.95rem',
-      }}
-      {...props}
-    />
-  ),
-  code: ({ inline, children, ...props }: any) =>
-    inline ? (
-      <code
-        style={{
-          backgroundColor: 'rgba(0, 0, 0, 0.08)',
-          padding: '0.2em 0.4em',
-          borderRadius: '0.3rem',
-          fontFamily: '"Fira Code", "Monaco", monospace',
-          fontSize: '0.9em',
-          fontWeight: '500',
-          color: '#c7254e',
-        }}
-        {...props}
-      >
-        {children}
-      </code>
-    ) : (
-      <pre
-        style={{
-          backgroundColor: '#2d2d2d',
-          color: '#f8f8f2',
-          padding: '1rem',
-          borderRadius: '0.5rem',
-          overflowX: 'auto',
-          fontSize: '0.85rem',
-          lineHeight: '1.5',
-          border: '1px solid rgba(0,0,0,0.2)',
-          marginBottom: '1rem',
-        }}
-      >
-        <code {...props}>{children}</code>
-      </pre>
-    ),
-  blockquote: ({ ...props }: any) => (
-    <blockquote
-      style={{
-        borderLeft: '4px solid #0070f3',
-        paddingLeft: '1rem',
-        paddingRight: '0.5rem',
-        color: '#555',
-        marginLeft: 0,
-        marginRight: 0,
-        marginBottom: '1rem',
-        backgroundColor: 'rgba(0, 112, 243, 0.05)',
-        borderRadius: '0 0.3rem 0.3rem 0',
-        fontStyle: 'italic',
-        padding: '0.75rem 1rem',
-      }}
-      {...props}
-    />
-  ),
-  a: ({ ...props }: any) => (
-    <a
-      style={{
-        color: '#0070f3',
-        textDecoration: 'underline',
-        textDecorationColor: 'rgba(0, 112, 243, 0.3)',
-        textUnderlineOffset: '2px',
-        fontWeight: '500',
-      }}
-      {...props}
-    />
-  ),
-  table: ({ ...props }: any) => (
-    <div style={{ overflowX: 'auto', marginBottom: '1rem' }}>
-      <table
-        style={{
-          width: '100%',
-          borderCollapse: 'collapse',
-          fontSize: '0.9rem',
-          border: '1px solid #ddd',
-          borderRadius: '0.3rem',
-          overflow: 'hidden',
-        }}
-        {...props}
-      />
-    </div>
-  ),
-  th: ({ ...props }: any) => (
-    <th
-      style={{
-        borderBottom: '2px solid #0070f3',
-        padding: '0.75rem',
-        textAlign: 'left',
-        backgroundColor: '#f0f7ff',
-        fontWeight: '600',
-        color: '#1a1a1a',
-      }}
-      {...props}
-    />
-  ),
-  td: ({ ...props }: any) => (
-    <td
-      style={{
-        borderBottom: '1px solid #eee',
-        padding: '0.75rem',
-        color: '#333',
-      }}
-      {...props}
-    />
-  ),
-  tr: ({ ...props }: any) => (
-    <tr
-      style={{
-        '&:nth-child(even)': { backgroundColor: '#fafafa' },
-      }}
-      {...props}
-    />
-  ),
-  strong: ({ ...props }: any) => <strong style={{ fontWeight: '700', color: '#1a1a1a' }} {...props} />,
-  em: ({ ...props }: any) => <em style={{ fontStyle: 'italic', color: '#555' }} {...props} />,
-};
+/* ─────────────────────────────────────────
+   Markdown renderer — no external library.
+   Handles: headings, bold, italic, inline
+   code, fenced code blocks, bullet lists,
+   numbered lists, horizontal rules.
+───────────────────────────────────────── */
+function MarkdownRenderer({ content, isUser }: { content: string; isUser: boolean }) {
+  const theme = useMantineTheme();
+  const { colorScheme } = useMantineColorScheme();
+  const isDark = colorScheme === 'dark';
+  const textColor = isUser ? '#fff' : isDark ? theme.colors.gray[1] : theme.colors.gray[9];
+  const dimColor = isUser ? 'rgba(255,255,255,0.65)' : isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.4)';
 
-export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
-  const isUser = message.sender === 'user';
+  // Split into blocks separated by blank lines or code fences
+  const blocks = parseBlocks(content);
 
   return (
-    <Group justify={isUser ? 'flex-end' : 'flex-start'} align="flex-end" gap="sm" style={{ width: '100%' }}>
-      {!isUser && (
-        <Box
+    <Stack gap={12}>
+      {blocks.map((block, i) => {
+        /* ── Fenced code block ── */
+        if (block.type === 'code') {
+          return (
+            <Box key={i}>
+              {block.lang && (
+                <Box
+                  px="sm"
+                  py={4}
+                  style={{
+                    background: isDark ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.06)',
+                    borderRadius: '8px 8px 0 0',
+                    borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <Text size="xs" style={{ color: dimColor, fontFamily: 'monospace', fontWeight: 500 }}>
+                    {block.lang}
+                  </Text>
+                  <CopyCodeButton code={block.text} isDark={isDark} />
+                </Box>
+              )}
+              <Box
+                style={{
+                  background: isDark ? 'rgba(0,0,0,0.45)' : 'rgba(0,0,0,0.04)',
+                  borderRadius: block.lang ? '0 0 8px 8px' : 8,
+                  border: `1px solid ${isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)'}`,
+                  borderTop: block.lang ? 'none' : undefined,
+                  overflow: 'auto',
+                  padding: '12px 14px',
+                }}
+              >
+                <Text
+                  size="xs"
+                  style={{
+                    fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace",
+                    lineHeight: 1.7,
+                    whiteSpace: 'pre',
+                    color: isDark ? '#c9d1d9' : '#24292f',
+                    wordBreak: 'keep-all',
+                  }}
+                >
+                  {block.text}
+                </Text>
+              </Box>
+            </Box>
+          );
+        }
+
+        /* ── Horizontal rule ── */
+        if (block.type === 'hr') {
+          return (
+            <Box
+              key={i}
+              style={{
+                height: 1,
+                background: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+                margin: '4px 0',
+              }}
+            />
+          );
+        }
+
+        /* ── Heading ── */
+        if (block.type === 'heading') {
+          const sizes: Record<number, string> = { 1: '18px', 2: '16px', 3: '14px' };
+          return (
+            <Text
+              key={i}
+              fw={700}
+              style={{
+                fontSize: sizes[block.level ?? 1] ?? '14px',
+                color: textColor,
+                lineHeight: 1.3,
+                marginTop: i > 0 ? 4 : 0,
+              }}
+            >
+              {renderInline(block.text, isUser, isDark, theme)}
+            </Text>
+          );
+        }
+
+        /* ── Bullet list ── */
+        if (block.type === 'ul') {
+          return (
+            <Stack key={i} gap={4} pl="xs">
+              {block.items!.map((item, j) => (
+                <Group key={j} gap={8} align="flex-start" wrap="nowrap">
+                  <Box
+                    style={{
+                      width: 5,
+                      height: 5,
+                      borderRadius: '50%',
+                      background: isUser ? 'rgba(255,255,255,0.7)' : theme.colors[theme.primaryColor][6],
+                      marginTop: 8,
+                      flexShrink: 0,
+                    }}
+                  />
+                  <Text size="sm" lh={1.65} style={{ color: textColor, flex: 1 }}>
+                    {renderInline(item, isUser, isDark, theme)}
+                  </Text>
+                </Group>
+              ))}
+            </Stack>
+          );
+        }
+
+        /* ── Numbered list ── */
+        if (block.type === 'ol') {
+          return (
+            <Stack key={i} gap={4} pl="xs">
+              {block.items!.map((item, j) => (
+                <Group key={j} gap={8} align="flex-start" wrap="nowrap">
+                  <Text
+                    size="xs"
+                    fw={600}
+                    style={{
+                      color: isUser ? 'rgba(255,255,255,0.7)' : theme.colors[theme.primaryColor][6],
+                      minWidth: 18,
+                      marginTop: 2,
+                      flexShrink: 0,
+                    }}
+                  >
+                    {j + 1}.
+                  </Text>
+                  <Text size="sm" lh={1.65} style={{ color: textColor, flex: 1 }}>
+                    {renderInline(item, isUser, isDark, theme)}
+                  </Text>
+                </Group>
+              ))}
+            </Stack>
+          );
+        }
+
+        /* ── Paragraph (default) ── */
+        return (
+          <Text
+            key={i}
+            size="sm"
+            lh={1.8}
+            style={{
+              color: textColor,
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word',
+              marginTop: i > 0 ? 4 : 0,
+            }}
+          >
+            {renderInline(block.text, isUser, isDark, theme)}
+          </Text>
+        );
+      })}
+    </Stack>
+  );
+}
+
+/* ── Copy button for code blocks ── */
+function CopyCodeButton({ code, isDark }: { code: string; isDark: boolean }) {
+  const theme = useMantineTheme();
+  const [copied, setCopied] = useState(false);
+  return (
+    <ActionIcon
+      size="xs"
+      variant="subtle"
+      color={copied ? theme.primaryColor : 'gray'}
+      onClick={() => {
+        navigator.clipboard.writeText(code);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }}
+    >
+      {copied ? <IconCheck size={11} /> : <IconCopy size={11} />}
+    </ActionIcon>
+  );
+}
+
+/* ─────────────────────────────────────────
+   Inline renderer: bold, italic, inline code
+───────────────────────────────────────── */
+function renderInline(
+  text: string,
+  isUser: boolean,
+  isDark: boolean,
+  theme: ReturnType<typeof useMantineTheme>
+): React.ReactNode {
+  // Pattern matches **bold**, *italic*, `code`, and plain text segments
+  const pattern = /(`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*)/g;
+  const parts: React.ReactNode[] = [];
+  let last = 0;
+  let match: RegExpExecArray | null;
+  let key = 0;
+
+  while ((match = pattern.exec(text)) !== null) {
+    if (match.index > last) {
+      parts.push(<span key={key++}>{text.slice(last, match.index)}</span>);
+    }
+    const token = match[0];
+    if (token.startsWith('**')) {
+      parts.push(
+        <Text key={key++} span fw={700} style={{ color: isUser ? '#fff' : isDark ? '#f0ede8' : '#111' }}>
+          {token.slice(2, -2)}
+        </Text>
+      );
+    } else if (token.startsWith('*')) {
+      parts.push(
+        <Text key={key++} span fs="italic">
+          {token.slice(1, -1)}
+        </Text>
+      );
+    } else if (token.startsWith('`')) {
+      parts.push(
+        <Code
+          key={key++}
           style={{
-            width: 36,
-            height: 36,
-            borderRadius: '4px',
-            backgroundColor: 'var(--mantine-color-gray-8)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-            padding: '4px',
+            fontSize: 12,
+            padding: '1px 5px',
+            borderRadius: 4,
+            background: isUser ? 'rgba(255,255,255,0.18)' : isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.07)',
+            color: isUser ? '#fff' : isDark ? theme.colors.gray[2] : theme.colors[theme.primaryColor][6],
+            fontFamily: "'JetBrains Mono', monospace",
           }}
         >
-          <img src={agentLogo} alt="Agent" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-        </Box>
-      )}
+          {token.slice(1, -1)}
+        </Code>
+      );
+    }
+    last = match.index + token.length;
+  }
+  if (last < text.length) {
+    parts.push(<span key={key++}>{text.slice(last)}</span>);
+  }
+  return parts.length === 1 && typeof parts[0] === 'string' ? parts[0] : <>{parts}</>;
+}
 
-      <Paper
-        p="md"
+/* ─────────────────────────────────────────
+   Block parser
+───────────────────────────────────────── */
+type Block =
+  | { type: 'code'; text: string; lang?: string }
+  | { type: 'heading'; text: string; level: number }
+  | { type: 'ul'; items: string[]; text: '' }
+  | { type: 'ol'; items: string[]; text: '' }
+  | { type: 'hr'; text: '' }
+  | { type: 'p'; text: string };
+
+function parseBlocks(raw: string): Block[] {
+  const lines = raw.split('\n');
+  const blocks: Block[] = [];
+  let i = 0;
+
+  while (i < lines.length) {
+    const line = lines[i];
+
+    // Fenced code block
+    const fenceMatch = line.match(/^```(\w*)$/);
+    if (fenceMatch) {
+      const lang = fenceMatch[1] || '';
+      const codeLines: string[] = [];
+      i++;
+      while (i < lines.length && !lines[i].startsWith('```')) {
+        codeLines.push(lines[i]);
+        i++;
+      }
+      i++; // skip closing ```
+      blocks.push({ type: 'code', text: codeLines.join('\n'), lang });
+      continue;
+    }
+
+    // Horizontal rule
+    if (/^---+$/.test(line.trim())) {
+      blocks.push({ type: 'hr', text: '' });
+      i++;
+      continue;
+    }
+
+    // Headings
+    const headingMatch = line.match(/^(#{1,3})\s+(.+)$/);
+    if (headingMatch) {
+      blocks.push({ type: 'heading', level: headingMatch[1].length, text: headingMatch[2] });
+      i++;
+      continue;
+    }
+
+    // Bullet list — collect consecutive bullet lines
+    if (/^[-*]\s/.test(line)) {
+      const items: string[] = [];
+      while (i < lines.length && /^[-*]\s/.test(lines[i])) {
+        items.push(lines[i].replace(/^[-*]\s+/, ''));
+        i++;
+      }
+      blocks.push({ type: 'ul', items, text: '' });
+      continue;
+    }
+
+    // Numbered list
+    if (/^\d+[.)]\s/.test(line)) {
+      const items: string[] = [];
+      while (i < lines.length && /^\d+[.)]\s/.test(lines[i])) {
+        items.push(lines[i].replace(/^\d+[.)]\s+/, ''));
+        i++;
+      }
+      blocks.push({ type: 'ol', items, text: '' });
+      continue;
+    }
+
+    // Empty line — skip
+    if (line.trim() === '') {
+      i++;
+      continue;
+    }
+
+    // Paragraph — accumulate until blank line or special line
+    const paraLines: string[] = [];
+    while (
+      i < lines.length &&
+      lines[i].trim() !== '' &&
+      !lines[i].startsWith('```') &&
+      !/^#{1,3}\s/.test(lines[i]) &&
+      !/^[-*]\s/.test(lines[i]) &&
+      !/^\d+[.)]\s/.test(lines[i]) &&
+      !/^---+$/.test(lines[i].trim())
+    ) {
+      paraLines.push(lines[i]);
+      i++;
+    }
+    if (paraLines.length) {
+      blocks.push({ type: 'p', text: paraLines.join('\n') });
+    }
+  }
+
+  return blocks;
+}
+
+/* ─────────────────────────────────────────
+   Main ChatMessage component
+───────────────────────────────────────── */
+export function ChatMessage({ message }: ChatMessageProps) {
+  const theme = useMantineTheme();
+  const { colorScheme } = useMantineColorScheme();
+  const isDark = colorScheme === 'dark';
+  const [copied, setCopied] = useState(false);
+  const [helpful, setHelpful] = useState<boolean | null>(message.is_helpful ? true : null);
+  const [showActions, setShowActions] = useState(false);
+
+  const isUser = message.role === 'user';
+
+  const timeAgo = (date: string) => {
+    const s = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
+    if (s < 60) return 'just now';
+    if (s < 3600) return `${Math.floor(s / 60)}m ago`;
+    if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
+    return new Date(date).toLocaleDateString();
+  };
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(message.content);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  /* ── User bubble ── */
+  if (isUser) {
+    return (
+      <Group justify="flex-end" align="flex-start" gap="sm" mb="md" wrap="nowrap">
+        <Stack gap={4} align="flex-end" style={{ maxWidth: '72%' }}>
+          <Paper
+            px="lg"
+            py="sm"
+            radius="xl"
+            style={{
+              background: theme.colors[theme.primaryColor][6],
+              color: '#fff',
+              boxShadow: `0 2px 14px ${theme.colors[theme.primaryColor][6]}38`,
+              borderBottomRightRadius: 6,
+            }}
+          >
+            <MarkdownRenderer content={message.content} isUser={true} />
+          </Paper>
+          <Text size="xs" c="dimmed" pr={4}>
+            {timeAgo(message.created_at)}
+          </Text>
+        </Stack>
+        <Avatar
+          size={32}
+          radius="md"
+          style={{
+            background: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+            color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
+            flexShrink: 0,
+            marginTop: 2,
+          }}
+        >
+          <IconUser size={15} stroke={1.5} />
+        </Avatar>
+      </Group>
+    );
+  }
+
+  /* ── Assistant bubble ── */
+  return (
+    <Group
+      justify="flex-start"
+      align="flex-start"
+      gap="sm"
+      mb="lg"
+      wrap="nowrap"
+      onMouseEnter={() => setShowActions(true)}
+      onMouseLeave={() => setShowActions(false)}
+    >
+      <Avatar
+        size={32}
         radius="md"
-        bg={isUser ? 'var(--mantine-color-blue-6)' : 'var(--mantine-color-gray-1)'}
-        withBorder={!isUser}
         style={{
-          maxWidth: '70%',
-          wordWrap: 'break-word',
+          background: isDark ? `${theme.colors[theme.primaryColor][6]}24` : `${theme.colors[theme.primaryColor][6]}17`,
+          color: theme.colors[theme.primaryColor][6],
+          flexShrink: 0,
+          marginTop: 2,
         }}
       >
-        {message.isLoading ? (
-          <Group gap="xs">
-            <Loader size="sm" />
-            <Text size="sm">Thinking...</Text>
+        <IconSparkles size={15} stroke={1.5} />
+      </Avatar>
+
+      <Stack gap={6} style={{ flex: 1, minWidth: 0, maxWidth: '85%' }}>
+        {/* Message content — simple rendering without card wrapper */}
+        <Box style={{ paddingRight: '8px' }}>
+          <MarkdownRenderer content={message.content} isUser={false} />
+        </Box>
+
+        {/* Meta row + action buttons */}
+        <Group gap={6} justify="space-between" px={2}>
+          <Group gap={6}>
+            <Text size="xs" c="dimmed">
+              {timeAgo(message.created_at)}
+            </Text>
+            {message.ai_model_used && (
+              <>
+                <Text size="xs" c="dimmed">
+                  ·
+                </Text>
+                <Text size="xs" c="dimmed">
+                  {message.ai_model_used}
+                </Text>
+              </>
+            )}
+            {message.total_tokens && (
+              <>
+                <Text size="xs" c="dimmed">
+                  ·
+                </Text>
+                <Text size="xs" c="dimmed">
+                  {message.total_tokens} tokens
+                </Text>
+              </>
+            )}
           </Group>
-        ) : (
-          <div className="chat-message-content" style={{ color: isUser ? 'white' : 'black', fontSize: '0.875rem' }}>
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm, remarkMath]}
-              rehypePlugins={[rehypeKatex]}
-              components={markdownComponents}
-            >
-              {message.message}
-            </ReactMarkdown>
-          </div>
-        )}
-      </Paper>
+
+          {/* Action buttons — always visible on mobile, hover on desktop */}
+          <Group
+            gap={2}
+            style={{
+              opacity: showActions ? 1 : 0,
+              transition: 'opacity 160ms ease',
+            }}
+          >
+            <Tooltip label={copied ? 'Copied!' : 'Copy'} withArrow>
+              <ActionIcon
+                variant="subtle"
+                size="sm"
+                radius="sm"
+                color={copied ? theme.primaryColor : 'gray'}
+                onClick={handleCopy}
+              >
+                {copied ? <IconCheck size={13} /> : <IconCopy size={13} />}
+              </ActionIcon>
+            </Tooltip>
+            <Tooltip label="Good response" withArrow>
+              <ActionIcon
+                variant="subtle"
+                size="sm"
+                radius="sm"
+                color={helpful === true ? theme.primaryColor : 'gray'}
+                onClick={() => setHelpful(helpful === true ? null : true)}
+              >
+                <IconThumbUp size={13} />
+              </ActionIcon>
+            </Tooltip>
+            <Tooltip label="Bad response" withArrow>
+              <ActionIcon
+                variant="subtle"
+                size="sm"
+                radius="sm"
+                color={helpful === false ? 'red' : 'gray'}
+                onClick={() => setHelpful(helpful === false ? null : false)}
+              >
+                <IconThumbDown size={13} />
+              </ActionIcon>
+            </Tooltip>
+            <Tooltip label="More" withArrow>
+              <ActionIcon variant="subtle" size="sm" radius="sm" color="gray">
+                <IconDotsVertical size={13} />
+              </ActionIcon>
+            </Tooltip>
+          </Group>
+        </Group>
+      </Stack>
     </Group>
   );
-};
+}

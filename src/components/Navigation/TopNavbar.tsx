@@ -11,11 +11,13 @@ import {
   ThemeIcon,
   Tooltip,
   UnstyledButton,
+  useMantineColorScheme,
   useMantineTheme,
 } from '@mantine/core';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import {
   IconBell,
+  IconFlame,
   IconHelp,
   IconLogout,
   IconMenu2,
@@ -23,6 +25,7 @@ import {
   IconSearch,
   IconSend,
   IconSettings,
+  IconTrophy,
 } from '@tabler/icons-react';
 import { getAuth } from 'firebase/auth';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -30,6 +33,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import gmAicgLogo from '@/assets/gm-ai-cg-logo-back-with-name-removebg-preview.png';
 import { LogoutButton } from '@/lib/auth/LogoutButton';
 import { useAuth } from '@/lib/auth/useAuth';
+import useGamification from '@/hooks/useGamification';
+import { useLoggedInUser } from '@/lib/auth/useLoggedInUser';
 
 import { MainNavigation } from './MainNavigation';
 import classes from './TopNavbar.module.css';
@@ -42,13 +47,22 @@ interface TopNavbarProps {
 
 export function TopNavbar({ onChatClick, sidebarOpened = false, onSidebarToggle }: TopNavbarProps) {
   const theme = useMantineTheme();
+  const { colorScheme } = useMantineColorScheme();
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
+  const { user: loggedInUser } = useLoggedInUser();
 
   const [searchValue, setSearchValue] = useState('');
   const isMobile = useMediaQuery(`(max-width: ${theme.breakpoints.sm})`);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  // Fetch gamification data
+  const { points, streak } = useGamification({
+    userId: loggedInUser?.id || 0,
+    enableAutoRefresh: loggedInUser?.id ? true : false,
+    refreshInterval: 60000,
+  });
 
   const getPhotoUrl = () => {
     const currentUser = getAuth().currentUser;
@@ -97,7 +111,6 @@ export function TopNavbar({ onChatClick, sidebarOpened = false, onSidebarToggle 
         style={{
           height: 56,
           backgroundColor: theme.colors[theme.primaryColor][4],
-          borderBottom: `1px solid ${theme.colors.gray[3]}`,
           display: 'flex',
           alignItems: 'center',
           padding: `0 ${rem(16)}`,
@@ -285,27 +298,125 @@ export function TopNavbar({ onChatClick, sidebarOpened = false, onSidebarToggle 
           </Tooltip>
 
           {/* Help Icon */}
-          <Tooltip label="Help">
-            <ThemeIcon
-              variant="subtle"
-              color="white"
-              size="lg"
-              style={{
-                cursor: 'pointer',
-                transition: 'background-color 200ms',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }}
-            >
-              <IconHelp size={20} stroke={1.5} />
-            </ThemeIcon>
-          </Tooltip>
+           <Tooltip label="Help">
+             <ThemeIcon
+               variant="subtle"
+               color="white"
+               size="lg"
+               style={{
+                 cursor: 'pointer',
+                 transition: 'background-color 200ms',
+               }}
+               onMouseEnter={(e) => {
+                 e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+               }}
+               onMouseLeave={(e) => {
+                 e.currentTarget.style.backgroundColor = 'transparent';
+               }}
+             >
+               <IconHelp size={20} stroke={1.5} />
+             </ThemeIcon>
+           </Tooltip>
 
-          {/* Profile Menu */}
+           {/* Streak Button */}
+           <Tooltip label="Current Streak">
+             <Button
+               variant="subtle"
+               size="sm"
+               onClick={() => handleNavigate('/gamification')}
+               style={{
+                 backgroundColor: colorScheme === 'dark'
+                   ? `${theme.colors[theme.primaryColor][8]}20`
+                   : theme.colors[theme.primaryColor][0],
+                 color: colorScheme === 'dark'
+                   ? theme.colors[theme.primaryColor][3]
+                   : theme.colors[theme.primaryColor][6],
+                 display: 'flex',
+                 alignItems: 'center',
+                 gap: rem(6),
+                 padding: `${rem(6)} ${rem(12)}`,
+                 borderRadius: theme.radius.md,
+                 border: `1px solid ${
+                   colorScheme === 'dark'
+                     ? theme.colors[theme.primaryColor][8]
+                     : theme.colors[theme.primaryColor][2]
+                 }`,
+                 cursor: 'pointer',
+                 transition: 'all 200ms',
+               }}
+               onMouseEnter={(e) => {
+                 e.currentTarget.style.backgroundColor = colorScheme === 'dark'
+                   ? `${theme.colors[theme.primaryColor][8]}40`
+                   : theme.colors[theme.primaryColor][1];
+               }}
+               onMouseLeave={(e) => {
+                 e.currentTarget.style.backgroundColor = colorScheme === 'dark'
+                   ? `${theme.colors[theme.primaryColor][8]}20`
+                   : theme.colors[theme.primaryColor][0];
+               }}
+             >
+               <IconFlame size={16} />
+               <Box style={{ fontSize: rem(12), fontWeight: 600 }}>
+                 {streak?.current_streak || 0}
+               </Box>
+               {!isMobile && (
+                 <Box style={{ fontSize: rem(10), opacity: 0.8 }}>
+                   streak
+                 </Box>
+               )}
+             </Button>
+           </Tooltip>
+
+           {/* Points Button */}
+           <Tooltip label="Total Points">
+             <Button
+               variant="subtle"
+               size="sm"
+               onClick={() => handleNavigate('/gamification')}
+               style={{
+                 backgroundColor: colorScheme === 'dark'
+                   ? `${theme.colors[theme.primaryColor][8]}20`
+                   : theme.colors[theme.primaryColor][0],
+                 color: colorScheme === 'dark'
+                   ? theme.colors[theme.primaryColor][3]
+                   : theme.colors[theme.primaryColor][6],
+                 display: 'flex',
+                 alignItems: 'center',
+                 gap: rem(6),
+                 padding: `${rem(6)} ${rem(12)}`,
+                 borderRadius: theme.radius.md,
+                 border: `1px solid ${
+                   colorScheme === 'dark'
+                     ? theme.colors[theme.primaryColor][8]
+                     : theme.colors[theme.primaryColor][2]
+                 }`,
+                 cursor: 'pointer',
+                 transition: 'all 200ms',
+               }}
+               onMouseEnter={(e) => {
+                 e.currentTarget.style.backgroundColor = colorScheme === 'dark'
+                   ? `${theme.colors[theme.primaryColor][8]}40`
+                   : theme.colors[theme.primaryColor][1];
+               }}
+               onMouseLeave={(e) => {
+                 e.currentTarget.style.backgroundColor = colorScheme === 'dark'
+                   ? `${theme.colors[theme.primaryColor][8]}20`
+                   : theme.colors[theme.primaryColor][0];
+               }}
+             >
+               <IconTrophy size={16} />
+               <Box style={{ fontSize: rem(12), fontWeight: 600 }}>
+                 {points?.total_points || 0}
+               </Box>
+               {!isMobile && (
+                 <Box style={{ fontSize: rem(10), opacity: 0.8 }}>
+                   points
+                 </Box>
+               )}
+             </Button>
+           </Tooltip>
+
+           {/* Profile Menu */}
           <Menu shadow="md" width={200} position="bottom-end">
             <Menu.Target>
               <UnstyledButton
