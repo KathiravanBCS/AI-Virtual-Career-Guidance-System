@@ -77,7 +77,7 @@ export const LoginPage: React.FC = () => {
         color: 'green',
       });
 
-      navigate('/dashboard');
+      navigate('/')
     } catch (err: any) {
       const errorMessage = err.message || 'Login failed. Please try again.';
       setError(errorMessage);
