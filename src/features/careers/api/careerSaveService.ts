@@ -46,9 +46,11 @@ export async function saveCareerAnalysis(data: AICareerGuidance): Promise<SaveAn
     };
 
     const guidanceResponse = await api.careerGuidance.create(guidanceData);
-    const careerGuidanceId = guidanceResponse?.data?.id;
+    // The API client unwraps the response, so guidanceResponse is the CareerGuidance object directly
+    const careerGuidanceId = (guidanceResponse as any)?.id;
 
     if (!careerGuidanceId) {
+      console.error('[SaveService] Response structure:', guidanceResponse);
       throw new Error('Career guidance creation failed - no ID returned');
     }
 
