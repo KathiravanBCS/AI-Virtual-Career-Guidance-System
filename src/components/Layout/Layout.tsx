@@ -4,6 +4,7 @@ import { Box, useMantineColorScheme, useMantineTheme } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import { Outlet, useLocation } from 'react-router-dom';
 
+import { ChatDrawer } from '@/features/chat/components/ChatDrawer';
 import { BreadcrumbNavigation } from '@/components/Navigation/BreadcrumbNavigation';
 import { MainNavigation } from '@/components/Navigation/MainNavigation';
 import { TopNavbar } from '@/components/Navigation/TopNavbar';
@@ -47,7 +48,7 @@ export function Layout() {
         {/* Top Navbar */}
         {!isHiddenNavPage && (
           <TopNavbar
-            onChatClick={() => setIsChatDrawerOpen(true)}
+            onChatClick={() => setIsChatDrawerOpen((prev) => !prev)}
             sidebarOpened={sidebarOpened}
             onSidebarToggle={() => setSidebarOpened(!sidebarOpened)}
           />
@@ -89,13 +90,31 @@ export function Layout() {
               style={{
                 flex: 1,
                 overflow: 'auto',
-                padding: isGuidancePage ? 0 : 12,
+                padding: isGuidancePage ? 0 : isMobile ? 8 : 12,
                 backgroundColor: colorScheme === 'dark' ? theme.colors.dark[7] : '#ffffff',
               }}
             >
               <Outlet context={{ isChatDrawerOpen, setIsChatDrawerOpen }} />
             </Box>
           </Box>
+
+          {/* Chat Sidebar */}
+          {!isHiddenNavPage && isChatDrawerOpen && (
+            <Box
+              style={{
+                width: isMobile ? '100%' : 460,
+                minWidth: isMobile ? '100%' : 420,
+                maxWidth: isMobile ? '100%' : 520,
+                borderLeft: `1px solid ${colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.gray[3]}`,
+                overflow: 'hidden',
+                display: 'flex',
+                flexDirection: 'column',
+                backgroundColor: colorScheme === 'dark' ? theme.colors.dark[8] : '#fff',
+              }}
+            >
+              <ChatDrawer opened={isChatDrawerOpen} onClose={() => setIsChatDrawerOpen(false)} />
+            </Box>
+          )}
         </Box>
       </Box>
     </>

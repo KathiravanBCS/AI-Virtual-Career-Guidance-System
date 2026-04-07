@@ -1,4 +1,5 @@
-import { Box, Paper, useMantineColorScheme, useMantineTheme } from '@mantine/core';
+import { Box, Paper, Text, useMantineColorScheme, useMantineTheme } from '@mantine/core';
+import { IconRotate } from '@tabler/icons-react';
 
 import { Flashcard } from '../types';
 
@@ -11,100 +12,213 @@ interface FlashcardCardProps {
 export const FlashcardCard: React.FC<FlashcardCardProps> = ({ card, isFlipped, onClick }) => {
   const theme = useMantineTheme();
   const { colorScheme } = useMantineColorScheme();
+  const isDark = colorScheme === 'dark';
+  const primary = theme.primaryColor;
+
+  // Normalize front/back HTML from both camelCase and snake_case formats
+  const frontHtml = (card.front_html || (card as any).frontHTML || '').trim();
+  const backHtml = (card.back_html || (card as any).backHTML || '').trim();
 
   return (
-    <Paper
+    <Box
       onClick={onClick}
-      p="lg"
-      radius="lg"
-      withBorder
       style={{
         width: '100%',
-        height: '400px',
+        height: '420px',
         cursor: 'pointer',
-        perspective: '1000px',
+        perspective: '1200px',
         position: 'relative',
-        overflow: 'hidden',
-        backgroundColor: colorScheme === 'dark' ? theme.colors.dark[6] : theme.white,
-        borderColor: theme.colors.gray[colorScheme === 'dark' ? 7 : 2],
       }}
     >
-      {/* Front */}
+      {/* Inner container that flips */}
       <Box
         style={{
           width: '100%',
           height: '100%',
-          padding: '32px',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          backfaceVisibility: 'hidden',
-          transform: isFlipped ? 'rotateX(180deg)' : 'rotateX(0deg)',
-          transition: 'transform 0.6s',
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          color: colorScheme === 'dark' ? theme.colors.gray[0] : 'inherit',
+          position: 'relative',
+          transformStyle: 'preserve-3d',
+          transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+          transition: 'transform 0.55s cubic-bezier(0.4, 0, 0.2, 1)',
         }}
       >
-        <Box style={{ fontSize: '12px', fontWeight: 600, color: theme.colors[theme.primaryColor][5] }}>
-          Question {card.id}
-        </Box>
-        <Box
+        {/* Front Face */}
+        <Paper
+          radius="xl"
+          withBorder
           style={{
-            fontSize: '24px',
-            fontWeight: 500,
-            textAlign: 'center',
-            color: colorScheme === 'dark' ? theme.colors.gray[0] : 'inherit',
-          }}
-          dangerouslySetInnerHTML={{ __html: card.front_html || '' }}
-        />
-        <Box style={{ fontSize: '12px', textAlign: 'center' }} c="dimmed">
-          Click to flip ↓
-        </Box>
-      </Box>
-
-      {/* Back */}
-      <Box
-        style={{
-          width: '100%',
-          height: '100%',
-          padding: '32px',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          backfaceVisibility: 'hidden',
-          transform: isFlipped ? 'rotateX(0deg)' : 'rotateX(-180deg)',
-          transition: 'transform 0.6s',
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          backgroundColor:
-            colorScheme === 'dark' ? theme.colors[theme.primaryColor][9] : theme.colors[theme.primaryColor][0],
-          color: colorScheme === 'dark' ? theme.colors[theme.primaryColor][2] : theme.colors[theme.primaryColor][7],
-        }}
-      >
-        <Box
-          style={{
-            fontSize: '12px',
-            fontWeight: 600,
-            color: colorScheme === 'dark' ? theme.colors[theme.primaryColor][3] : theme.colors[theme.primaryColor][6],
+            width: '100%',
+            height: '100%',
+            backfaceVisibility: 'hidden',
+            WebkitBackfaceVisibility: 'hidden',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            padding: '36px',
+            backgroundColor: isDark ? theme.colors.dark[6] : theme.white,
+            borderColor: isDark ? theme.colors.dark[4] : theme.colors.gray[2],
+            boxShadow: isDark
+              ? `0 8px 32px rgba(0,0,0,0.4)`
+              : `0 4px 24px rgba(0,0,0,0.08)`,
+            overflow: 'hidden',
           }}
         >
-          Answer
-        </Box>
-        <Box
+          {/* Accent bar top */}
+          <Box
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: '4px',
+              background: `linear-gradient(90deg, ${theme.colors[primary][5]}, ${theme.colors[primary][3]})`,
+              borderRadius: '12px 12px 0 0',
+            }}
+          />
+
+          {/* Question label */}
+          <Box style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: 'auto' }}>
+            <Box
+              style={{
+                background: isDark ? theme.colors[primary][9] : theme.colors[primary][0],
+                border: `1px solid ${theme.colors[primary][isDark ? 7 : 2]}`,
+                borderRadius: '20px',
+                padding: '4px 12px',
+                fontSize: '11px',
+                fontWeight: 700,
+                color: theme.colors[primary][isDark ? 3 : 6],
+                letterSpacing: '0.05em',
+                textTransform: 'uppercase',
+              }}
+            >
+              Question {card.id}
+            </Box>
+          </Box>
+
+          {/* Question text */}
+          <Box
+            style={{
+              flex: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '16px 0',
+            }}
+            dangerouslySetInnerHTML={{ __html: frontHtml }}
+          />
+
+          {/* Flip hint */}
+          <Box
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              color: isDark ? theme.colors.gray[5] : theme.colors.gray[5],
+              fontSize: '12px',
+              marginTop: 'auto',
+            }}
+          >
+            <IconRotate size={14} />
+            <Text size="xs" c="dimmed">Click to reveal answer</Text>
+          </Box>
+        </Paper>
+
+        {/* Back Face */}
+        <Paper
+          radius="xl"
           style={{
-            fontSize: '16px',
-            textAlign: 'center',
-            color: colorScheme === 'dark' ? theme.colors[theme.primaryColor][2] : theme.colors[theme.primaryColor][7],
+            width: '100%',
+            height: '100%',
+            backfaceVisibility: 'hidden',
+            WebkitBackfaceVisibility: 'hidden',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            transform: 'rotateY(180deg)',
+            display: 'flex',
+            flexDirection: 'column',
+            padding: '36px',
+            background: isDark
+              ? `linear-gradient(135deg, ${theme.colors[primary][9]}, ${theme.colors[primary][8]})`
+              : `linear-gradient(135deg, ${theme.colors[primary][0]}, ${theme.colors[primary][1]})`,
+            borderColor: theme.colors[primary][isDark ? 7 : 3],
+            overflow: 'hidden',
+            boxShadow: isDark
+              ? `0 8px 32px rgba(0,0,0,0.5)`
+              : `0 4px 24px ${theme.colors[primary][1]}`,
           }}
-          dangerouslySetInnerHTML={{ __html: card.back_html || '' }}
-        />
-        <Box style={{ fontSize: '12px', textAlign: 'center' }} c="dimmed">
-          Click to flip ↑
-        </Box>
+        >
+          {/* Decorative circle */}
+          <Box
+            style={{
+              position: 'absolute',
+              top: '-40px',
+              right: '-40px',
+              width: '140px',
+              height: '140px',
+              borderRadius: '50%',
+              background: isDark
+                ? `${theme.colors[primary][7]}40`
+                : `${theme.colors[primary][2]}60`,
+            }}
+          />
+
+          {/* Answer label */}
+          <Box style={{ marginBottom: 'auto' }}>
+            <Box
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                background: isDark ? `${theme.colors[primary][7]}50` : `${theme.colors[primary][2]}80`,
+                borderRadius: '20px',
+                padding: '4px 12px',
+                fontSize: '11px',
+                fontWeight: 700,
+                color: theme.colors[primary][isDark ? 2 : 7],
+                letterSpacing: '0.05em',
+                textTransform: 'uppercase',
+              }}
+            >
+              Answer
+            </Box>
+          </Box>
+
+          {/* Answer text */}
+          <Box
+            style={{
+              flex: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '17px',
+              lineHeight: 1.6,
+              color: theme.colors[primary][isDark ? 1 : 8],
+              textAlign: 'center',
+              padding: '16px 0',
+            }}
+            dangerouslySetInnerHTML={{ __html: backHtml }}
+          />
+
+          {/* Flip back hint */}
+          <Box
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              fontSize: '12px',
+              color: theme.colors[primary][isDark ? 4 : 5],
+              marginTop: 'auto',
+            }}
+          >
+            <IconRotate size={14} />
+            <Text size="xs" style={{ color: 'inherit' }}>Click to go back</Text>
+          </Box>
+        </Paper>
       </Box>
-    </Paper>
+    </Box>
   );
 };

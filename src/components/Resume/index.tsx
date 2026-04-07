@@ -61,7 +61,7 @@ const ResumeContent = () => {
         setScale={setScale}
         documentSize={settings.documentSize}
         document={document}
-        fileName={resume.profile.name + ' - Resume'}
+        fileName={(resume.profile?.name || 'Resume') + ' - Resume'}
       />
       <ResumeIframeCSR documentSize={settings.documentSize} scale={scale} enablePDFViewer={true} debounceDelay={0}>
         <ResumePDFWrapper resume={resume} settings={settings} isPDF={true} />

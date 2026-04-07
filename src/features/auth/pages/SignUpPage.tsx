@@ -95,7 +95,7 @@ export const SignUpPage: React.FC = () => {
         color: 'green',
       });
 
-      navigate('/dashboard');
+      navigate('/');
     } catch (err: any) {
       const errorMessage = err.message || 'Sign up failed. Please try again.';
       setError(errorMessage);
@@ -126,7 +126,7 @@ export const SignUpPage: React.FC = () => {
         color: 'green',
       });
 
-      navigate('/dashboard');
+      navigate('/');
     } catch (err: any) {
       const errorMessage = err.message || 'Google sign up failed. Please try again.';
       setError(errorMessage);

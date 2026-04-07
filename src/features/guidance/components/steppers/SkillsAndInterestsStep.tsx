@@ -1,4 +1,18 @@
-import { Alert, Badge, Button, Group, Input, Stack, Text, Tooltip, useMantineTheme } from '@mantine/core';
+import {
+  ActionIcon,
+  Alert,
+  Badge,
+  Box,
+  Button,
+  Divider,
+  Group,
+  Input,
+  Stack,
+  Text,
+  Tooltip,
+  useMantineColorScheme,
+  useMantineTheme,
+} from '@mantine/core';
 import { IconBulb, IconPlus, IconX } from '@tabler/icons-react';
 import { AnimatePresence, motion } from 'framer-motion';
 
@@ -18,248 +32,237 @@ interface SkillsAndInterestsStepProps {
 }
 
 const skillSuggestions = [
-  'JavaScript',
-  'TypeScript',
-  'React',
-  'Node.js',
-  'Python',
-  'SQL',
-  'AWS',
-  'Docker',
-  'HTML/CSS',
-  'Java',
-  'C++',
-  'Database Design',
+  'JavaScript', 'TypeScript', 'React', 'Node.js', 'Python',
+  'SQL', 'AWS', 'Docker', 'HTML/CSS', 'Java', 'C++', 'Database Design',
 ];
 
 const interestSuggestions = [
-  'Web Development',
-  'Data Science',
-  'Mobile Apps',
-  'Machine Learning',
-  'Cybersecurity',
-  'Cloud Computing',
-  'UI/UX Design',
-  'Game Development',
-  'DevOps',
-  'Blockchain',
-  'AI/ML',
-  'Backend Development',
+  'Web Development', 'Data Science', 'Mobile Apps', 'Machine Learning',
+  'Cybersecurity', 'Cloud Computing', 'UI/UX Design', 'Game Development',
+  'DevOps', 'Blockchain', 'AI/ML', 'Backend Development',
 ];
 
+function TagSection({
+  label,
+  description,
+  inputValue,
+  onInputChange,
+  onAdd,
+  items,
+  onRemove,
+  suggestions,
+  primaryColor,
+  primary6,
+  primary1,
+  isDark,
+  theme,
+}: {
+  label: string;
+  description: string;
+  inputValue: string;
+  onInputChange: (v: string) => void;
+  onAdd: () => void;
+  items: string[];
+  onRemove: (v: string) => void;
+  suggestions: string[];
+  primaryColor: string;
+  primary6: string;
+  primary1: string;
+  isDark: boolean;
+  theme: ReturnType<typeof useMantineTheme>;
+}) {
+  return (
+    <Stack gap="sm">
+      <div>
+        <Text fw={600} size="sm">{label}</Text>
+        <Text size="xs" c="dimmed">{description}</Text>
+      </div>
+
+      {/* Input row */}
+      <Group gap="xs">
+        <Input
+          placeholder={`Add a ${label.toLowerCase().replace(/s$/, '')}`}
+          value={inputValue}
+          onChange={(e) => onInputChange(e.currentTarget.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); onAdd(); } }}
+          radius="md"
+          size="sm"
+          style={{ flex: 1 }}
+          styles={{
+            input: {
+              borderColor: isDark ? theme.colors.gray[7] : theme.colors.gray[3],
+              backgroundColor: isDark ? theme.colors.dark[6] : theme.white,
+              '&:focus': { borderColor: primary6 },
+            },
+          }}
+        />
+        <Button
+          size="sm"
+          onClick={onAdd}
+          leftSection={<IconPlus size={14} />}
+          color={primaryColor}
+          radius="md"
+          variant="filled"
+        >
+          Add
+        </Button>
+      </Group>
+
+      {/* Added tags */}
+      {items.length > 0 && (
+        <Group gap="xs" wrap="wrap">
+          <AnimatePresence>
+            {items.map((item) => (
+              <motion.div key={item} variants={badgeVariants} initial="hidden" animate="visible" exit="exit">
+                <Badge
+                  size="md"
+                  radius="sm"
+                  color={primaryColor}
+                  variant="filled"
+                  rightSection={
+                    <ActionIcon
+                      size={14}
+                      variant="transparent"
+                      color="white"
+                      onClick={() => onRemove(item)}
+                      style={{ marginLeft: 2 }}
+                    >
+                      <IconX size={10} />
+                    </ActionIcon>
+                  }
+                >
+                  {item}
+                </Badge>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </Group>
+      )}
+
+      {/* Suggestions */}
+      <Box>
+        <Text size="xs" c="dimmed" mb={6} fw={500}>
+          Quick add:
+        </Text>
+        <Group gap={6} wrap="wrap">
+          {suggestions
+            .filter((s) => !items.includes(s))
+            .map((s, i) => (
+              <motion.div
+                key={s}
+                initial={{ opacity: 0, scale: 0.85 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: i * 0.03 }}
+              >
+                <Tooltip label="Click to add" withArrow position="top">
+                  <Badge
+                    variant="outline"
+                    color={primaryColor}
+                    radius="sm"
+                    size="sm"
+                    style={{
+                      cursor: 'pointer',
+                      backgroundColor: primary1,
+                      transition: 'all 0.15s ease',
+                    }}
+                    onClick={() => { onInputChange(s); }}
+                  >
+                    + {s}
+                  </Badge>
+                </Tooltip>
+              </motion.div>
+            ))}
+        </Group>
+      </Box>
+    </Stack>
+  );
+}
+
 export function SkillsAndInterestsStep({
-  currentSkills,
-  interests,
-  skillInput,
-  interestInput,
-  onSkillInputChange,
-  onInterestInputChange,
-  onAddSkill,
-  onRemoveSkill,
-  onAddInterest,
-  onRemoveInterest,
+  currentSkills, interests, skillInput, interestInput,
+  onSkillInputChange, onInterestInputChange,
+  onAddSkill, onRemoveSkill, onAddInterest, onRemoveInterest,
 }: SkillsAndInterestsStepProps) {
   const theme = useMantineTheme();
-  const primaryColor = theme.colors[theme.primaryColor][6];
-  const accentColor = theme.colors[theme.primaryColor][2];
+  const { colorScheme } = useMantineColorScheme();
+  const isDark = colorScheme === 'dark';
+
+  const primary6 = theme.colors[theme.primaryColor][6];
+  const primary1 = theme.colors[theme.primaryColor][isDark ? 9 : 0];
+  const primary3 = theme.colors[theme.primaryColor][isDark ? 7 : 2];
+
+  const sharedProps = { primaryColor: theme.primaryColor, primary6, primary1, isDark, theme };
 
   return (
     <motion.div initial="hidden" animate="visible" variants={containerVariants}>
-      <Stack gap="lg">
+      <Stack gap="xl" pt="sm">
+        {/* Header */}
         <motion.div variants={itemVariants}>
-          <Text fw={700} size="lg" mb="md" c={theme.primaryColor}>
-            What skills and interests do you have?
-          </Text>
+          <Box style={{ borderLeft: `3px solid ${primary6}`, paddingLeft: 14 }}>
+            <Text fw={700} size="xl" c={`${theme.primaryColor}.6`}>
+              Skills &amp; Interests
+            </Text>
+            <Text size="sm" c="dimmed" mt={2}>
+              Optional — but helps us recommend content at the right level.
+            </Text>
+          </Box>
         </motion.div>
 
-        {/* Skills Section */}
+        {/* Skills */}
         <motion.div variants={itemVariants}>
-          <div>
-            <Text fw={600} size="sm" mb="md">
-              Current Skills
-            </Text>
-
-            <Group mb="md" gap="xs">
-              <Input
-                placeholder="Add a skill"
-                value={skillInput}
-                onChange={(e) => onSkillInputChange(e.currentTarget.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    onAddSkill();
-                  }
-                }}
-                style={{ flex: 1 }}
-                radius="md"
-              />
-              <Button size="sm" onClick={onAddSkill} leftSection={<IconPlus size={16} />} color={theme.primaryColor}>
-                Add
-              </Button>
-            </Group>
-
-            <Group gap="xs" mb="md">
-              <AnimatePresence>
-                {currentSkills.map((skill) => (
-                  <motion.div key={skill} variants={badgeVariants} initial="hidden" animate="visible" exit="exit">
-                    <Badge
-                      size="lg"
-                      color={theme.primaryColor}
-                      rightSection={
-                        <button
-                          onClick={() => onRemoveSkill(skill)}
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            cursor: 'pointer',
-                            padding: '4px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                          }}
-                        >
-                          <IconX size={10} />
-                        </button>
-                      }
-                    >
-                      {skill}
-                    </Badge>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-            </Group>
-
-            <Text size="sm" c="dimmed" mb="sm">
-              Suggestions:
-            </Text>
-            <Group gap="xs" mb="lg">
-              {skillSuggestions.map((skill, index) => (
-                <motion.div
-                  key={skill}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: index * 0.05 }}
-                >
-                  <Tooltip label="Click to add" position="top" withArrow>
-                    <Badge
-                      variant="dot"
-                      color={theme.primaryColor}
-                      style={{ cursor: 'pointer' }}
-                      onClick={() => {
-                        if (!currentSkills.includes(skill)) {
-                          onSkillInputChange(skill);
-                        }
-                      }}
-                    >
-                      + {skill}
-                    </Badge>
-                  </Tooltip>
-                </motion.div>
-              ))}
-            </Group>
-          </div>
+          <TagSection
+            label="Current Skills"
+            description="Technologies and tools you already know"
+            inputValue={skillInput}
+            onInputChange={onSkillInputChange}
+            onAdd={onAddSkill}
+            items={currentSkills}
+            onRemove={onRemoveSkill}
+            suggestions={skillSuggestions}
+            {...sharedProps}
+          />
         </motion.div>
 
-        {/* Interests Section */}
         <motion.div variants={itemVariants}>
-          <div>
-            <Text fw={600} size="sm" mb="md">
-              Interests
-            </Text>
-
-            <Group mb="md" gap="xs">
-              <Input
-                placeholder="Add an interest"
-                value={interestInput}
-                onChange={(e) => onInterestInputChange(e.currentTarget.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    onAddInterest();
-                  }
-                }}
-                style={{ flex: 1 }}
-                radius="md"
-              />
-              <Button size="sm" onClick={onAddInterest} leftSection={<IconPlus size={16} />} color={theme.primaryColor}>
-                Add
-              </Button>
-            </Group>
-
-            <Group gap="xs" mb="md">
-              <AnimatePresence>
-                {interests.map((interest) => (
-                  <motion.div key={interest} variants={badgeVariants} initial="hidden" animate="visible" exit="exit">
-                    <Badge
-                      size="lg"
-                      color={theme.primaryColor}
-                      rightSection={
-                        <button
-                          onClick={() => onRemoveInterest(interest)}
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            cursor: 'pointer',
-                            padding: '4px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                          }}
-                        >
-                          <IconX size={10} />
-                        </button>
-                      }
-                    >
-                      {interest}
-                    </Badge>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-            </Group>
-
-            <Text size="sm" c="dimmed" mb="sm">
-              Suggestions:
-            </Text>
-            <Group gap="xs">
-              {interestSuggestions.map((interest, index) => (
-                <motion.div
-                  key={interest}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: index * 0.05 }}
-                >
-                  <Tooltip label="Click to add" position="top" withArrow>
-                    <Badge
-                      variant="dot"
-                      color={theme.primaryColor}
-                      style={{ cursor: 'pointer' }}
-                      onClick={() => {
-                        if (!interests.includes(interest)) {
-                          onInterestInputChange(interest);
-                        }
-                      }}
-                    >
-                      + {interest}
-                    </Badge>
-                  </Tooltip>
-                </motion.div>
-              ))}
-            </Group>
-          </div>
+          <Divider
+            labelPosition="center"
+            label={<Text size="xs" c="dimmed">and</Text>}
+          />
         </motion.div>
 
+        {/* Interests */}
+        <motion.div variants={itemVariants}>
+          <TagSection
+            label="Interests"
+            description="Areas you want to explore or deepen"
+            inputValue={interestInput}
+            onInputChange={onInterestInputChange}
+            onAdd={onAddInterest}
+            items={interests}
+            onRemove={onRemoveInterest}
+            suggestions={interestSuggestions}
+            {...sharedProps}
+          />
+        </motion.div>
+
+        {/* Tip */}
         <motion.div variants={itemVariants}>
           <Alert
             icon={<IconBulb size={16} />}
-            style={{ backgroundColor: `${accentColor}20`, borderColor: primaryColor }}
+            radius="md"
+            variant="light"
+            color={theme.primaryColor}
+            style={{ backgroundColor: primary1, borderColor: primary3 }}
             title={
-              <Text fw={600} c={theme.primaryColor}>
-                Tip
+              <Text fw={600} size="sm" c={`${theme.primaryColor}.6`}>
+                This step is optional
               </Text>
             }
-            radius="md"
           >
-            <Text size="sm">This helps us understand your current level and recommend relevant content.</Text>
+            <Text size="sm" c={isDark ? theme.colors.gray[3] : theme.colors.gray[7]}>
+              Adding skills and interests helps us understand your current level and recommend relevant content that
+              aligns with your goals.
+            </Text>
           </Alert>
         </motion.div>
       </Stack>

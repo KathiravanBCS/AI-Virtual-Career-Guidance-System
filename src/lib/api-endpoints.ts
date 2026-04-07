@@ -306,6 +306,11 @@ export const API_ENDPOINTS = {
     },
   },
 
+  // Dashboard
+  dashboard: {
+    summaryMe: '/api/v1/dashboard/summary/me',
+  },
+
   // Health Check
   health: '/health',
 };

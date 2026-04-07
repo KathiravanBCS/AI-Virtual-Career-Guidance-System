@@ -1,4 +1,7 @@
+import { useState } from 'react';
+
 import {
+  ActionIcon,
   Box,
   Button,
   Flex,
@@ -8,12 +11,14 @@ import {
   Text,
   Textarea,
   TextInput,
+  Tooltip,
   useMantineColorScheme,
   useMantineTheme,
 } from '@mantine/core';
-import { IconArrowDown, IconArrowUp, IconBriefcase, IconTrash } from '@tabler/icons-react';
+import { IconArrowDown, IconArrowUp, IconBriefcase, IconSparkles, IconTrash } from '@tabler/icons-react';
 
 import { FormHeader } from '@/components/ResumeForm/FormHeader';
+import { ResumeAIModal } from '@/components/ResumeForm/ResumeAIModal';
 import { useResumeStore } from '@/lib/store/useResumeStore';
 
 export const WorkExperiencesForm = () => {
@@ -21,7 +26,8 @@ export const WorkExperiencesForm = () => {
   const { colorScheme } = useMantineColorScheme();
   const { resume, changeWorkExperiences, deleteSectionInFormByIdx, moveSectionInForm, addSectionInForm } =
     useResumeStore();
-  const workExperiences = resume.workExperiences;
+  const workExperiences = resume.workExperiences ?? [];
+  const [aiModalIdx, setAIModalIdx] = useState<number | null>(null);
 
   const showDelete = workExperiences.length > 1;
 
@@ -73,16 +79,31 @@ export const WorkExperiencesForm = () => {
                     />
                   </Grid.Col>
                   <Grid.Col span={12}>
-                    <Textarea
-                      label="Description"
-                      placeholder="Bullet points (one per line)"
-                      minRows={3}
-                      value={descriptions?.join('\n') || ''}
-                      onChange={(e) => {
-                        const lines = e.currentTarget.value.split('\n').filter((line) => line.trim());
-                        changeWorkExperiences(idx, 'descriptions', lines);
-                      }}
-                    />
+                    <Box style={{ position: 'relative' }}>
+                      <Textarea
+                        label="Description"
+                        placeholder="Bullet points (one per line)"
+                        minRows={3}
+                        value={descriptions?.join('\n') || ''}
+                        onChange={(e) => {
+                          const lines = e.currentTarget.value.split('\n').filter((line) => line.trim());
+                          changeWorkExperiences(idx, 'descriptions', lines);
+                        }}
+                        styles={{ input: { paddingRight: '2.5rem' } }}
+                      />
+                      <Tooltip label="Generate with AI" position="left" withArrow>
+                        <ActionIcon
+                          variant="gradient"
+                          gradient={{ from: 'violet', to: 'blue', deg: 135 }}
+                          size="sm"
+                          style={{ position: 'absolute', top: '1.6rem', right: '0.5rem' }}
+                          onClick={() => setAIModalIdx(idx)}
+                          aria-label="Generate description with AI"
+                        >
+                          <IconSparkles size={14} />
+                        </ActionIcon>
+                      </Tooltip>
+                    </Box>
                   </Grid.Col>
                 </Grid>
 
@@ -137,6 +158,27 @@ export const WorkExperiencesForm = () => {
           </Button>
         </Group>
       </FormHeader>
+
+      {/* AI Modal — one instance, controlled by index */}
+      {aiModalIdx !== null && (
+        <ResumeAIModal
+          opened={aiModalIdx !== null}
+          onClose={() => setAIModalIdx(null)}
+          fieldType="workExperience"
+          context={{
+            jobTitle: workExperiences[aiModalIdx]?.jobTitle,
+            company: workExperiences[aiModalIdx]?.company,
+          }}
+          onApply={(generated) => {
+            if (aiModalIdx !== null) {
+              const lines = Array.isArray(generated)
+                ? generated
+                : generated.split('\n').filter((l) => l.trim());
+              changeWorkExperiences(aiModalIdx, 'descriptions', lines);
+            }
+          }}
+        />
+      )}
     </Stack>
   );
 };

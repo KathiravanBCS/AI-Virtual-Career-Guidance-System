@@ -5,6 +5,9 @@ export interface FlashcardItem {
   front_html: string;
   back_html: string;
   item_order: number;
+  // Support camelCase from API responses
+  frontHTML?: string;
+  backHTML?: string;
 }
 
 // Flashcard Set/Collection

@@ -5,7 +5,10 @@ import { styles } from '@/components/Resume/ResumePDF/styles';
 import type { ResumeSummary } from '@/lib/types';
 
 export const ResumePDFSummary = ({ summary, themeColor }: { summary: ResumeSummary; themeColor: string }) => {
-  const { content } = summary;
+  if (!summary) {
+    return null;
+  }
+  const { content = '' } = summary;
 
   if (!content || content.trim() === '') {
     return null;

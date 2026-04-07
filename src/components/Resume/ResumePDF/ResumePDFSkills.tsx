@@ -15,8 +15,11 @@ export const ResumePDFSkills = ({
   themeColor: string;
   showBulletPoints: boolean;
 }) => {
-  const { descriptions, featuredSkills } = skills;
-  const featuredSkillsWithText = featuredSkills.filter((item) => item.skill);
+  if (!skills) {
+    return null;
+  }
+  const { descriptions = [], featuredSkills = [] } = skills;
+  const featuredSkillsWithText = (featuredSkills || []).filter((item) => item?.skill);
   const featuredSkillsPair = [
     [featuredSkillsWithText[0], featuredSkillsWithText[3]],
     [featuredSkillsWithText[1], featuredSkillsWithText[4]],

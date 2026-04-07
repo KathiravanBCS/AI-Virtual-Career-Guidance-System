@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 import {
   Alert,
+  Badge,
   Box,
   Button,
   Container,
@@ -11,10 +12,20 @@ import {
   Radio,
   Stack,
   Text,
+  Title,
   useMantineColorScheme,
   useMantineTheme,
 } from '@mantine/core';
-import { IconAlertCircle, IconCheck, IconX } from '@tabler/icons-react';
+import {
+  IconAlertCircle,
+  IconArrowLeft,
+  IconArrowRight,
+  IconCheck,
+  IconCircleCheck,
+  IconDownload,
+  IconSend,
+  IconX,
+} from '@tabler/icons-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { ListPageLayout } from '@/components/list-page/ListPageLayout';
@@ -23,7 +34,7 @@ import { useCreateQuiz, useCreateQuizQuestion } from '../api';
 import type { CreateQuizQuestionRequest, CreateQuizRequest, Quiz } from '../types';
 import useActivityLogger from '@/hooks/useActivityLogger';
 import { useNotification } from '@/features/gamification/context/NotificationContext';
-import { useLoggedInUser } from '@/lib/auth/useLoggedInUser';
+import { QuizResults } from '../components';
 
 interface QuizQuestion {
   id?: string | number;
@@ -36,32 +47,25 @@ interface QuizQuestion {
   questionType?: 'single' | 'multiple';
 }
 
-interface QuizData {
-  topic?: string;
-  questions?: QuizQuestion[];
-  data?: QuizQuestion[];
-}
-
 export const QuizDisplayPage: React.FC = () => {
   const theme = useMantineTheme();
   const { colorScheme } = useMantineColorScheme();
+  const isDark = colorScheme === 'dark';
+  const primary = theme.primaryColor;
   const location = useLocation();
   const navigate = useNavigate();
+
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, string>>({});
   const [showResults, setShowResults] = useState<boolean>(false);
   const [isQuizSaved, setIsQuizSaved] = useState<boolean>(false);
+  const [hoveredOption, setHoveredOption] = useState<string | null>(null);
 
-  // Hooks for creating quizzes and questions
   const { mutate: createQuiz, isPending: isCreatingQuiz } = useCreateQuiz();
   const { mutate: createQuizQuestion, isPending: isCreatingQuestion } = useCreateQuizQuestion();
   const { showNotification } = useNotification();
-  const { logQuizPass, logQuizAttempt } = useActivityLogger({
-    showNotification,
-  });
-  const { user: loggedInUser } = useLoggedInUser();
+  const { logQuizPass, logQuizAttempt } = useActivityLogger({ showNotification });
 
-  // Get quiz and metadata from location state
   const {
     quiz: quizData = {},
     topic: topicFromState = 'Quiz',
@@ -70,10 +74,7 @@ export const QuizDisplayPage: React.FC = () => {
     quizId = 0,
   } = (location.state as any) || {};
 
-  // Extract questions from quiz data (handle both formats)
   const rawQuestions = (quizData.questions || quizData.data || []) as QuizQuestion[];
-
-  // Normalize questions to ensure correct format
   const quizQuestions = rawQuestions.map((q) => ({
     id: q.id,
     question: q.question,
@@ -84,10 +85,18 @@ export const QuizDisplayPage: React.FC = () => {
     questionType: q.questionType,
   }));
 
-  // Use topic from quiz data if available
   const topic = quizData.topic || topicFromState || 'Quiz';
 
-  // If no questions, redirect back to generator
+  const getTitleWithDate = () => {
+    const today = new Date();
+    const dateStr = today.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    const timeStr = today.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    return `${moduleName || topic} - ${dateStr} ${timeStr}`;
+  };
+
+  const calculateTotalPoints = (questions: typeof quizQuestions): number =>
+    questions.reduce((sum, q) => sum + (q.point || 10), 0);
+
   if (!quizQuestions || quizQuestions.length === 0) {
     return (
       <Container size="fluid" py="sm">
@@ -97,7 +106,7 @@ export const QuizDisplayPage: React.FC = () => {
           description="No quiz questions found. Please generate some first."
         >
           <Stack gap="lg" align="center">
-            <Button onClick={() => navigate('/quiz')}>Generate Quiz</Button>
+            <Button onClick={() => navigate('/quiz')} radius="lg">Generate Quiz</Button>
           </Stack>
         </ListPageLayout>
       </Container>
@@ -107,13 +116,14 @@ export const QuizDisplayPage: React.FC = () => {
   const currentQuestion = quizQuestions[currentQuestionIndex];
   const isAnswered = selectedAnswers[currentQuestionIndex] !== undefined;
   const isCorrect = selectedAnswers[currentQuestionIndex] === currentQuestion?.correctAnswer;
+  const correctAnswersCount = quizQuestions.filter((q, idx) => selectedAnswers[idx] === q.correctAnswer).length;
+  const percentage = Math.round((correctAnswersCount / quizQuestions.length) * 100);
+  const answeredCount = Object.keys(selectedAnswers).length;
+  const progress = ((currentQuestionIndex + 1) / quizQuestions.length) * 100;
 
   const handleAnswerChange = (value: string) => {
     if (!showResults) {
-      setSelectedAnswers({
-        ...selectedAnswers,
-        [currentQuestionIndex]: value,
-      });
+      setSelectedAnswers({ ...selectedAnswers, [currentQuestionIndex]: value });
     }
   };
 
@@ -131,45 +141,16 @@ export const QuizDisplayPage: React.FC = () => {
 
   const handleSubmit = async () => {
     setShowResults(true);
-    
-    // Calculate score
-    const correctAnswersCount = quizQuestions.filter((q, idx) => selectedAnswers[idx] === q.correctAnswer).length;
-    const percentage = Math.round((correctAnswersCount / quizQuestions.length) * 100);
-    
-    // Log activity based on score
-    const quizIdForLogging = quizId || (location.state as any)?.quiz?.id || learning_module_id;
-    
-    // Always log the attempt
+    const quizIdForLogging = quizId || learning_module_id;
     await logQuizAttempt(quizIdForLogging);
-    
-    // If passed, log quiz pass and show notification
     if (percentage >= 70) {
       await logQuizPass(quizIdForLogging, percentage);
     }
   };
 
-  const handleRestart = () => {
-    setCurrentQuestionIndex(0);
-    setSelectedAnswers({});
-    setShowResults(false);
-  };
-
-  // Generate title with module name and current date
-  const getTitleWithDate = () => {
-    const today = new Date();
-    const dateStr = today.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-    const timeStr = today.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-    return `${moduleName || topic} - ${dateStr} ${timeStr}`;
-  };
-
-  // Calculate total points from questions
-  const calculateTotalPoints = (questions: QuizQuestion[]): number => {
-    return questions.reduce((sum, q) => sum + (q.point || 10), 0);
-  };
-
   const handleSaveQuiz = async () => {
     try {
-      const quizData: CreateQuizRequest = {
+      const data: CreateQuizRequest = {
         learning_module_id: learning_module_id || 0,
         title: getTitleWithDate(),
         description: '',
@@ -179,28 +160,21 @@ export const QuizDisplayPage: React.FC = () => {
         status: 'active',
       };
 
-      // Create the quiz first
-      createQuiz(quizData, {
+      createQuiz(data, {
         onSuccess: (createdQuiz: Quiz) => {
-          // After quiz is created, create all the questions
-          quizQuestions.forEach((question: QuizQuestion, index: number) => {
+          quizQuestions.forEach((question, index) => {
             const questionData: CreateQuizQuestionRequest = {
               quiz_id: createdQuiz.id || 0,
               question_text: question.question,
               question_type: question.questionType || 'single',
-              answers: question.options || question.answers || [],
+              answers: question.options || [],
               correct_answer: String(question.correctAnswer || ''),
               explanation: question.explanation || '',
               points: question.point || 10,
               question_order: index + 1,
             };
-            createQuizQuestion({
-              quizId: createdQuiz.id || 0,
-              data: questionData,
-            });
+            createQuizQuestion({ quizId: createdQuiz.id || 0, data: questionData });
           });
-
-          // Mark quiz as saved
           setIsQuizSaved(true);
         },
       });
@@ -209,183 +183,166 @@ export const QuizDisplayPage: React.FC = () => {
     }
   };
 
-  // Calculate score
-  const correctAnswersCount = quizQuestions.filter((q, idx) => selectedAnswers[idx] === q.correctAnswer).length;
-  const percentage = Math.round((correctAnswersCount / quizQuestions.length) * 100);
-
-  // Show results summary
+  // Results view
   if (showResults) {
     return (
       <Container size="fluid" py="sm">
         <ListPageLayout
-          title="Quiz Results"
+          title="Quiz Complete"
           titleProps={{ fw: 700, size: 'h2' }}
-          description={`You scored ${correctAnswersCount} out of ${quizQuestions.length} (${percentage}%)`}
+          description={`${topic} — ${moduleName || ''}`}
           actions={
-            <Group>
-              {!isQuizSaved && (
-                <Button
-                  color={theme.primaryColor}
-                  onClick={handleSaveQuiz}
-                  loading={isCreatingQuiz || isCreatingQuestion}
-                >
-                  Save Quiz
-                </Button>
-              )}
-              {isQuizSaved && (
-                <Button variant="default" disabled>
-                  Quiz Saved ✓
-                </Button>
-              )}
-              <Button variant="default" onClick={handleRestart}>
-                Retake Quiz
+            <Group gap="sm">
+              <Button
+                variant="default"
+                onClick={() => {
+                  setShowResults(false);
+                  setSelectedAnswers({});
+                  setCurrentQuestionIndex(0);
+                }}
+                radius="lg"
+              >
+                Retake
               </Button>
-              <Button color={theme.primaryColor} onClick={() => navigate('/quiz')}>
-                Generate New
+              <Button color={primary} onClick={() => navigate('/quiz')} radius="lg">
+                New Quiz
               </Button>
             </Group>
           }
         >
-          <Stack gap="lg" align="center">
-            {/* Score Display */}
-            <Box style={{ textAlign: 'center' }}>
-              <Box
+          <Stack gap="xl">
+            {/* Score overview */}
+            <Box style={{ maxWidth: '760px', margin: '0 auto', width: '100%' }}>
+              <Paper
+                p="xl"
+                radius="xl"
+                withBorder
                 style={{
-                  width: 200,
-                  height: 200,
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  margin: '0 auto',
                   backgroundColor:
                     percentage >= 70
-                      ? colorScheme === 'dark'
-                        ? theme.colors.green[9]
-                        : theme.colors.green[0]
+                      ? isDark ? theme.colors.green[9] : theme.colors.green[0]
                       : percentage >= 50
-                        ? colorScheme === 'dark'
-                          ? theme.colors.yellow[9]
-                          : theme.colors.yellow[0]
-                        : colorScheme === 'dark'
-                          ? theme.colors.red[9]
-                          : theme.colors.red[0],
-                  border: `4px solid ${percentage >= 70 ? theme.colors.green[5] : percentage >= 50 ? theme.colors.yellow[5] : theme.colors.red[5]}`,
+                      ? isDark ? theme.colors.yellow[9] : theme.colors.yellow[0]
+                      : isDark ? theme.colors.red[9] : theme.colors.red[0],
+                  borderColor:
+                    percentage >= 70
+                      ? theme.colors.green[isDark ? 7 : 3]
+                      : percentage >= 50
+                      ? theme.colors.yellow[isDark ? 7 : 3]
+                      : theme.colors.red[isDark ? 7 : 3],
+                  textAlign: 'center',
                 }}
               >
-                <div style={{ textAlign: 'center' }}>
-                  <Text
-                    size="xl"
-                    fw={700}
-                    c={
-                      percentage >= 70
-                        ? colorScheme === 'dark'
-                          ? theme.colors.green[2]
-                          : theme.colors.green[7]
-                        : percentage >= 50
-                          ? colorScheme === 'dark'
-                            ? theme.colors.yellow[2]
-                            : theme.colors.yellow[7]
-                          : colorScheme === 'dark'
-                            ? theme.colors.red[2]
-                            : theme.colors.red[7]
-                    }
-                  >
-                    {percentage}%
-                  </Text>
-                  <Text
-                    size="sm"
-                    c={
-                      percentage >= 70
-                        ? colorScheme === 'dark'
-                          ? theme.colors.green[3]
-                          : theme.colors.green[6]
-                        : percentage >= 50
-                          ? colorScheme === 'dark'
-                            ? theme.colors.yellow[3]
-                            : theme.colors.yellow[6]
-                          : colorScheme === 'dark'
-                            ? theme.colors.red[3]
-                            : theme.colors.red[6]
-                    }
-                  >
-                    {correctAnswersCount}/{quizQuestions.length} correct
-                  </Text>
-                </div>
-              </Box>
+                <Text
+                  style={{ fontSize: '56px', lineHeight: 1, marginBottom: '8px' }}
+                >
+                  {percentage >= 70 ? '🏆' : percentage >= 50 ? '👍' : '📚'}
+                </Text>
+                <Title
+                  order={2}
+                  c={
+                    percentage >= 70
+                      ? isDark ? theme.colors.green[2] : theme.colors.green[8]
+                      : percentage >= 50
+                      ? isDark ? theme.colors.yellow[2] : theme.colors.yellow[8]
+                      : isDark ? theme.colors.red[2] : theme.colors.red[8]
+                  }
+                  mb="xs"
+                >
+                  {percentage}%
+                </Title>
+                <Text
+                  c={
+                    percentage >= 70
+                      ? isDark ? theme.colors.green[3] : theme.colors.green[7]
+                      : percentage >= 50
+                      ? isDark ? theme.colors.yellow[3] : theme.colors.yellow[7]
+                      : isDark ? theme.colors.red[3] : theme.colors.red[7]
+                  }
+                  size="sm"
+                >
+                  {correctAnswersCount} of {quizQuestions.length} correct
+                </Text>
+              </Paper>
             </Box>
 
-            {/* Performance Message */}
-            <Box style={{ textAlign: 'center' }}>
-              {percentage >= 80 && (
-                <Alert icon={<IconCheck size={16} />} title="Excellent!" color="green">
-                  Great job! You've mastered this topic.
-                </Alert>
-              )}
-              {percentage >= 60 && percentage < 80 && (
-                <Alert icon={<IconAlertCircle size={16} />} title="Good!" color="blue">
-                  You're doing well. Keep practicing to improve further.
-                </Alert>
-              )}
-              {percentage >= 40 && percentage < 60 && (
-                <Alert icon={<IconAlertCircle size={16} />} title="Fair" color="yellow">
-                  You need more practice. Review the material and try again.
-                </Alert>
-              )}
-              {percentage < 40 && (
-                <Alert icon={<IconX size={16} />} title="Needs Improvement" color="red">
-                  Review the learning materials and try again.
-                </Alert>
-              )}
-            </Box>
-
-            {/* Detailed Results */}
-            <Box style={{ width: '100%', maxWidth: '700px' }}>
-              <Text fw={500} mb="md" c={colorScheme === 'dark' ? theme.colors.gray[0] : 'inherit'}>
-                Question-by-Question Results:
+            {/* Per-question results */}
+            <Box style={{ maxWidth: '760px', margin: '0 auto', width: '100%' }}>
+              <Text fw={600} mb="md" c={isDark ? theme.colors.gray[0] : theme.colors.gray[9]}>
+                Question-by-Question Review
               </Text>
-              <Stack gap="md">
-                {quizQuestions.map((q, idx) => (
-                  <Paper
-                    key={idx}
-                    p="md"
-                    style={{
-                      border: `2px solid ${selectedAnswers[idx] === q.correctAnswer ? theme.colors.green[5] : theme.colors.red[5]}`,
-                      backgroundColor:
-                        selectedAnswers[idx] === q.correctAnswer
-                          ? colorScheme === 'dark'
-                            ? theme.colors.green[9]
-                            : theme.colors.green[0]
-                          : colorScheme === 'dark'
-                            ? theme.colors.red[9]
-                            : theme.colors.red[0],
-                    }}
-                  >
-                    <Group mb="xs">
-                      <Text fw={500} style={{ flex: 1 }}>
-                        Q{idx + 1}: {q.question}
+              <Stack gap="sm">
+                {quizQuestions.map((q, idx) => {
+                  const isRight = selectedAnswers[idx] === q.correctAnswer;
+                  return (
+                    <Paper
+                      key={idx}
+                      p="md"
+                      radius="lg"
+                      withBorder
+                      style={{
+                        backgroundColor: isRight
+                          ? isDark ? `${theme.colors.green[9]}60` : theme.colors.green[0]
+                          : isDark ? `${theme.colors.red[9]}60` : theme.colors.red[0],
+                        borderColor: isRight
+                          ? theme.colors.green[isDark ? 7 : 3]
+                          : theme.colors.red[isDark ? 7 : 3],
+                      }}
+                    >
+                      <Group justify="space-between" mb="xs" wrap="nowrap">
+                        <Group gap="xs" style={{ flex: 1, minWidth: 0 }}>
+                          <Badge
+                            size="sm"
+                            radius="sm"
+                            color={isRight ? 'green' : 'red'}
+                            variant="light"
+                          >
+                            Q{idx + 1}
+                          </Badge>
+                          <Text
+                            fw={500}
+                            size="sm"
+                            style={{ flex: 1, minWidth: 0 }}
+                            c={isDark ? theme.colors.gray[1] : theme.colors.gray[8]}
+                            lineClamp={2}
+                          >
+                            {q.question}
+                          </Text>
+                        </Group>
+                        <Box
+                          style={{
+                            width: '24px',
+                            height: '24px',
+                            borderRadius: '50%',
+                            backgroundColor: isRight ? theme.colors.green[5] : theme.colors.red[5],
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0,
+                          }}
+                        >
+                          {isRight ? <IconCheck size={13} color="white" /> : <IconX size={13} color="white" />}
+                        </Box>
+                      </Group>
+                      <Text size="xs" c="dimmed">
+                        Your answer:{' '}
+                        <Text component="span" fw={500} c={isDark ? theme.colors.gray[2] : 'inherit'}>
+                          {selectedAnswers[idx] || 'Not answered'}
+                        </Text>
                       </Text>
-                      {selectedAnswers[idx] === q.correctAnswer ? (
-                        <IconCheck size={20} color="#51cf66" />
-                      ) : (
-                        <IconX size={20} color="#ff6b6b" />
+                      {!isRight && (
+                        <Text size="xs" c={isDark ? theme.colors.green[3] : theme.colors.green[7]} mt={2}>
+                          Correct: {q.correctAnswer}
+                        </Text>
                       )}
-                    </Group>
-                    <Text size="sm" c="dimmed" mb="xs">
-                      Your answer: {selectedAnswers[idx] || 'Not answered'}
-                    </Text>
-                    {selectedAnswers[idx] !== q.correctAnswer && (
-                      <Text size="sm" c="green">
-                        Correct answer: {q.correctAnswer}
-                      </Text>
-                    )}
-                    {q.explanation && (
-                      <Text size="sm" c="dimmed" mt="xs" fs="italic">
-                        {q.explanation}
-                      </Text>
-                    )}
-                  </Paper>
-                ))}
+                      {q.explanation && (
+                        <Text size="xs" c="dimmed" mt="xs" fs="italic">
+                          {q.explanation}
+                        </Text>
+                      )}
+                    </Paper>
+                  );
+                })}
               </Stack>
             </Box>
           </Stack>
@@ -394,151 +351,212 @@ export const QuizDisplayPage: React.FC = () => {
     );
   }
 
-  // Show quiz question
+  // Quiz question view
+  const getOptionStyle = (option: string) => {
+    const isSelected = selectedAnswers[currentQuestionIndex] === option;
+    const isHovered = hoveredOption === option && !isAnswered;
+    if (isSelected) {
+      return {
+        backgroundColor: isDark ? theme.colors[primary][9] : theme.colors[primary][0],
+        borderColor: theme.colors[primary][isDark ? 5 : 5],
+      };
+    }
+    if (isHovered) {
+      return {
+        backgroundColor: isDark ? theme.colors.dark[5] : theme.colors.gray[0],
+        borderColor: theme.colors[primary][isDark ? 6 : 4],
+      };
+    }
+    return {
+      backgroundColor: isDark ? theme.colors.dark[6] : theme.white,
+      borderColor: isDark ? theme.colors.dark[4] : theme.colors.gray[3],
+    };
+  };
+
   return (
     <Container size="fluid" py="sm">
       <ListPageLayout
         title={`Quiz: ${topic}`}
         titleProps={{ fw: 700, size: 'h2' }}
-        description={moduleName || `Question ${currentQuestionIndex + 1} of ${quizQuestions.length}`}
+        description={moduleName || `${quizQuestions.length} questions`}
         actions={
-          <Group>
+          <Group gap="sm">
             <Button
-              color={theme.primaryColor}
+              variant={isQuizSaved ? 'light' : 'default'}
+              color={isQuizSaved ? 'green' : primary}
               onClick={handleSaveQuiz}
               loading={isCreatingQuiz || isCreatingQuestion}
               disabled={isQuizSaved}
+              radius="lg"
+              leftSection={isQuizSaved ? <IconCircleCheck size={16} /> : <IconDownload size={16} />}
             >
-              {isQuizSaved ? 'Quiz Saved ✓' : 'Save Quiz'}
+              {isQuizSaved ? 'Saved' : 'Save Quiz'}
             </Button>
-            <Button variant="default" onClick={() => navigate('/quiz')}>
-              Generate New
+            <Button variant="default" onClick={() => navigate('/quiz')} radius="lg">
+              New Quiz
             </Button>
           </Group>
         }
       >
         <Stack gap="lg" align="center">
           {/* Progress */}
-          <Box style={{ width: '100%', maxWidth: '700px' }}>
-            <Group justify="space-between" mb="sm">
-              <Text size="sm" fw={500}>
-                Question {currentQuestionIndex + 1} of {quizQuestions.length}
-              </Text>
-              <Text size="sm" c="dimmed">
-                {selectedAnswers[currentQuestionIndex] ? 'Answered' : 'Not answered'}
-              </Text>
-            </Group>
-            <Progress value={((currentQuestionIndex + 1) / quizQuestions.length) * 100} />
-          </Box>
-
-          {/* Question */}
-          <Box style={{ width: '100%', maxWidth: '700px' }}>
+          <Box style={{ width: '100%', maxWidth: '720px' }}>
             <Paper
-              p="lg"
-              radius="lg"
+              p="md"
+              radius="xl"
               withBorder
               style={{
-                backgroundColor: colorScheme === 'dark' ? theme.colors.dark[7] : theme.white,
-                borderColor: theme.colors.gray[colorScheme === 'dark' ? 7 : 2],
+                backgroundColor: isDark ? theme.colors.dark[7] : theme.white,
+                borderColor: isDark ? theme.colors.dark[4] : theme.colors.gray[2],
               }}
             >
-              <Text fw={500} mb="lg" size="lg" c={colorScheme === 'dark' ? theme.colors.gray[0] : 'inherit'}>
-                {currentQuestion?.question}
-              </Text>
-
-              {/* Options */}
-              <Radio.Group
-                value={selectedAnswers[currentQuestionIndex] || ''}
-                onChange={handleAnswerChange}
-                disabled={showResults}
-              >
-                <Stack gap="sm">
-                  {currentQuestion?.options?.map((option, idx) => (
-                    <Paper
-                      key={idx}
-                      p="md"
-                      style={{
-                        border: `1px solid ${theme.colors.gray[colorScheme === 'dark' ? 7 : 3]}`,
-                        backgroundColor:
-                          showResults && option === currentQuestion.correctAnswer
-                            ? colorScheme === 'dark'
-                              ? theme.colors.green[9]
-                              : theme.colors.green[0]
-                            : showResults &&
-                                option === selectedAnswers[currentQuestionIndex] &&
-                                option !== currentQuestion.correctAnswer
-                              ? colorScheme === 'dark'
-                                ? theme.colors.red[9]
-                                : theme.colors.red[0]
-                              : colorScheme === 'dark'
-                                ? theme.colors.dark[6]
-                                : 'transparent',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      <Radio value={option} label={option} styles={{ label: { cursor: 'pointer' } }} />
-                    </Paper>
-                  ))}
-                </Stack>
-              </Radio.Group>
-
-              {/* Show explanation after answer */}
-              {showResults && isAnswered && (
-                <Paper
-                  mt="lg"
-                  p="md"
-                  style={{ backgroundColor: colorScheme === 'dark' ? theme.colors.dark[6] : theme.colors.gray[0] }}
-                >
-                  <Group mb="xs">
-                    {isCorrect ? (
-                      <>
-                        <IconCheck size={20} color={theme.colors.green[5]} />
-                        <Text fw={500} c={theme.colors.green[5]}>
-                          Correct!
-                        </Text>
-                      </>
-                    ) : (
-                      <>
-                        <IconX size={20} color={theme.colors.red[5]} />
-                        <Text fw={500} c={theme.colors.red[5]}>
-                          Incorrect
-                        </Text>
-                      </>
-                    )}
-                  </Group>
-                  {currentQuestion?.explanation && (
-                    <Text size="sm" c={colorScheme === 'dark' ? theme.colors.gray[2] : 'inherit'}>
-                      {currentQuestion.explanation}
-                    </Text>
-                  )}
-                </Paper>
-              )}
+              <Group justify="space-between" mb="sm">
+                <Group gap="xs">
+                  <Text size="sm" fw={600} c={isDark ? theme.colors.gray[1] : theme.colors.gray[8]}>
+                    Question {currentQuestionIndex + 1}
+                  </Text>
+                  <Text size="sm" c="dimmed">of {quizQuestions.length}</Text>
+                </Group>
+                <Group gap="xs">
+                  <Badge
+                    size="sm"
+                    radius="md"
+                    color={isAnswered ? 'green' : 'gray'}
+                    variant="light"
+                  >
+                    {isAnswered ? 'Answered' : 'Unanswered'}
+                  </Badge>
+                  <Badge size="sm" radius="md" color={primary} variant="light">
+                    {answeredCount}/{quizQuestions.length} done
+                  </Badge>
+                </Group>
+              </Group>
+              <Progress value={progress} radius="xl" size="sm" color={primary} />
             </Paper>
           </Box>
 
-          {/* Navigation Buttons */}
-          <Group justify="space-between" style={{ width: '100%', maxWidth: '700px' }}>
+          {/* Question card */}
+          <Box style={{ width: '100%', maxWidth: '720px' }}>
+            <Paper
+              p="xl"
+              radius="xl"
+              withBorder
+              style={{
+                backgroundColor: isDark ? theme.colors.dark[7] : theme.white,
+                borderColor: isDark ? theme.colors.dark[4] : theme.colors.gray[2],
+                boxShadow: isDark ? 'none' : '0 4px 20px rgba(0,0,0,0.06)',
+              }}
+            >
+              <Stack gap="lg">
+                <Box>
+                  <Group gap="xs" mb="md">
+                    <Badge size="sm" radius="sm" color={primary} variant="light">
+                      {currentQuestion.point || 10} pts
+                    </Badge>
+                  </Group>
+                  <Text
+                    fw={600}
+                    size="lg"
+                    c={isDark ? theme.colors.gray[0] : theme.colors.gray[9]}
+                    style={{ lineHeight: 1.5 }}
+                  >
+                    {currentQuestion?.question}
+                  </Text>
+                </Box>
+
+                {/* Options */}
+                <Radio.Group
+                  value={selectedAnswers[currentQuestionIndex] || ''}
+                  onChange={handleAnswerChange}
+                >
+                  <Stack gap="sm">
+                    {currentQuestion?.options?.map((option, idx) => {
+                      const optStyle = getOptionStyle(option);
+                      const isSelected = selectedAnswers[currentQuestionIndex] === option;
+                      return (
+                        <Box
+                          key={idx}
+                          onClick={() => handleAnswerChange(option)}
+                          onMouseEnter={() => setHoveredOption(option)}
+                          onMouseLeave={() => setHoveredOption(null)}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '12px',
+                            padding: '14px 16px',
+                            borderRadius: theme.radius.lg,
+                            border: `1.5px solid ${optStyle.borderColor}`,
+                            backgroundColor: optStyle.backgroundColor,
+                            cursor: 'pointer',
+                            transition: 'all 0.18s ease',
+                          }}
+                        >
+                          <Box
+                            style={{
+                              width: '24px',
+                              height: '24px',
+                              borderRadius: '50%',
+                              border: `1.5px solid ${isSelected ? theme.colors[primary][5] : isDark ? theme.colors.dark[3] : theme.colors.gray[4]}`,
+                              backgroundColor: isSelected ? theme.colors[primary][5] : 'transparent',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              flexShrink: 0,
+                              transition: 'all 0.18s ease',
+                            }}
+                          >
+                            {isSelected && <IconCheck size={13} color="white" />}
+                          </Box>
+                          <Text
+                            size="sm"
+                            fw={isSelected ? 500 : 400}
+                            c={
+                              isSelected
+                                ? isDark ? theme.colors[primary][2] : theme.colors[primary][8]
+                                : isDark ? theme.colors.gray[2] : theme.colors.gray[8]
+                            }
+                            style={{ flex: 1 }}
+                          >
+                            {option}
+                          </Text>
+                        </Box>
+                      );
+                    })}
+                  </Stack>
+                </Radio.Group>
+              </Stack>
+            </Paper>
+          </Box>
+
+          {/* Navigation */}
+          <Group justify="space-between" style={{ width: '100%', maxWidth: '720px' }}>
             <Button
               onClick={handlePrev}
               disabled={currentQuestionIndex === 0}
               variant="default"
-              color={theme.primaryColor}
+              radius="lg"
+              leftSection={<IconArrowLeft size={16} />}
             >
               Previous
             </Button>
 
-            {currentQuestionIndex === quizQuestions.length - 1 && (
+            {currentQuestionIndex === quizQuestions.length - 1 ? (
               <Button
                 onClick={handleSubmit}
-                color={theme.primaryColor}
-                disabled={Object.keys(selectedAnswers).length !== quizQuestions.length}
+                color={primary}
+                radius="lg"
+                disabled={answeredCount !== quizQuestions.length}
+                leftSection={<IconSend size={16} />}
               >
                 Submit Quiz
               </Button>
-            )}
-
-            {currentQuestionIndex < quizQuestions.length - 1 && (
-              <Button onClick={handleNext} color={theme.primaryColor}>
+            ) : (
+              <Button
+                onClick={handleNext}
+                color={primary}
+                radius="lg"
+                rightSection={<IconArrowRight size={16} />}
+              >
                 Next
               </Button>
             )}

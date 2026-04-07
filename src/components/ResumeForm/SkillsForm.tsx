@@ -1,4 +1,7 @@
+import { useState } from 'react';
+
 import {
+  ActionIcon,
   Box,
   Button,
   Divider,
@@ -10,12 +13,14 @@ import {
   Text,
   Textarea,
   TextInput,
+  Tooltip,
   useMantineColorScheme,
   useMantineTheme,
 } from '@mantine/core';
-import { IconFlame, IconListDetails } from '@tabler/icons-react';
+import { IconFlame, IconListDetails, IconSparkles } from '@tabler/icons-react';
 
 import { FormHeader } from '@/components/ResumeForm/FormHeader';
+import { ResumeAIModal } from '@/components/ResumeForm/ResumeAIModal';
 import { useResumeStore } from '@/lib/store/useResumeStore';
 import { useSettingsStore } from '@/lib/store/useSettingsStore';
 
@@ -26,8 +31,9 @@ export const SkillsForm = () => {
   const { resume, changeSkills } = useResumeStore();
   const { showBulletPoints, themeColor, changeShowBulletPoints } = useSettingsStore();
 
-  const { featuredSkills, descriptions } = resume.skills;
+  const { featuredSkills = [], descriptions = [] } = resume.skills ?? {};
   const showBulletPointsForForm = showBulletPoints[form];
+  const [aiModalOpen, setAIModalOpen] = useState(false);
 
   return (
     <Stack gap="lg">
@@ -47,14 +53,28 @@ export const SkillsForm = () => {
                 const lines = e.currentTarget.value.split('\n').filter((line) => line.trim());
                 changeSkills('descriptions', undefined, undefined, undefined, lines);
               }}
+              styles={{ input: { paddingRight: '5rem' } }}
             />
             <Box
               style={{
                 position: 'absolute',
                 right: '0.5rem',
                 top: '1.8rem',
+                display: 'flex',
+                gap: '0.25rem',
               }}
             >
+              <Tooltip label="Generate with AI" position="left" withArrow>
+                <ActionIcon
+                  variant="gradient"
+                  gradient={{ from: 'violet', to: 'blue', deg: 135 }}
+                  size="sm"
+                  onClick={() => setAIModalOpen(true)}
+                  aria-label="Generate skills with AI"
+                >
+                  <IconSparkles size={14} />
+                </ActionIcon>
+              </Tooltip>
               <Button
                 variant={showBulletPointsForForm ? 'filled' : 'light'}
                 color={theme.primaryColor}
@@ -113,6 +133,18 @@ export const SkillsForm = () => {
           </Grid>
         </Stack>
       </FormHeader>
+
+      <ResumeAIModal
+        opened={aiModalOpen}
+        onClose={() => setAIModalOpen(false)}
+        fieldType="skills"
+        onApply={(generated) => {
+          const lines = Array.isArray(generated)
+            ? generated
+            : generated.split('\n').filter((l) => l.trim());
+          changeSkills('descriptions', undefined, undefined, undefined, lines);
+        }}
+      />
     </Stack>
   );
 };

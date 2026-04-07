@@ -1,4 +1,7 @@
+import { useState } from 'react';
+
 import {
+  ActionIcon,
   Box,
   Button,
   Flex,
@@ -7,12 +10,14 @@ import {
   Text,
   Textarea,
   TextInput,
+  Tooltip,
   useMantineColorScheme,
   useMantineTheme,
 } from '@mantine/core';
-import { IconArrowDown, IconArrowUp, IconFileText, IconListDetails, IconTrash } from '@tabler/icons-react';
+import { IconArrowDown, IconArrowUp, IconFileText, IconListDetails, IconSparkles, IconTrash } from '@tabler/icons-react';
 
 import { FormHeader } from '@/components/ResumeForm/FormHeader';
+import { ResumeAIModal } from '@/components/ResumeForm/ResumeAIModal';
 import { useResumeStore } from '@/lib/store/useResumeStore';
 import { useSettingsStore } from '@/lib/store/useSettingsStore';
 
@@ -25,6 +30,7 @@ export const CustomForm = () => {
 
   const sections = resume.custom?.sections || [];
   const showBulletPointsForForm = showBulletPoints[form];
+  const [aiModalIdx, setAIModalIdx] = useState<number | null>(null);
 
   return (
     <Stack gap="lg">
@@ -69,14 +75,28 @@ export const CustomForm = () => {
                       const lines = e.currentTarget.value.split('\n').filter((line) => line.trim());
                       changeCustom(idx, 'descriptions', lines);
                     }}
+                    styles={{ input: { paddingRight: '5rem' } }}
                   />
                   <Box
                     style={{
                       position: 'absolute',
                       right: '0.5rem',
                       top: '1.8rem',
+                      display: 'flex',
+                      gap: '0.25rem',
                     }}
                   >
+                    <Tooltip label="Generate with AI" position="left" withArrow>
+                      <ActionIcon
+                        variant="gradient"
+                        gradient={{ from: 'violet', to: 'blue', deg: 135 }}
+                        size="sm"
+                        onClick={() => setAIModalIdx(idx)}
+                        aria-label="Generate content with AI"
+                      >
+                        <IconSparkles size={14} />
+                      </ActionIcon>
+                    </Tooltip>
                     <Button
                       variant={showBulletPointsForForm ? 'filled' : 'light'}
                       color={theme.primaryColor}
@@ -140,6 +160,24 @@ export const CustomForm = () => {
           </Button>
         </Group>
       </FormHeader>
+
+      {/* AI Modal — per custom section */}
+      {aiModalIdx !== null && (
+        <ResumeAIModal
+          opened={aiModalIdx !== null}
+          onClose={() => setAIModalIdx(null)}
+          fieldType="custom"
+          context={{ sectionTitle: sections[aiModalIdx]?.title }}
+          onApply={(generated) => {
+            if (aiModalIdx !== null) {
+              const lines = Array.isArray(generated)
+                ? generated
+                : generated.split('\n').filter((l) => l.trim());
+              changeCustom(aiModalIdx, 'descriptions', lines);
+            }
+          }}
+        />
+      )}
     </Stack>
   );
 };

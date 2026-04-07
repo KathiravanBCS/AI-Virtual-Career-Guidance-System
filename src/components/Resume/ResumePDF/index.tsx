@@ -112,7 +112,7 @@ export const ResumePDF = ({
           </View>
         </Page>
       </Document>
-      <SuppressResumePDFErrorMessage />
+      {!isPDF && <SuppressResumePDFErrorMessage />}
     </>
   );
 };

@@ -7,6 +7,7 @@ import {
   Group,
   Menu,
   rem,
+  Text,
   TextInput,
   ThemeIcon,
   Tooltip,
@@ -17,6 +18,7 @@ import {
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import {
   IconBell,
+  IconDotsVertical,
   IconFlame,
   IconHelp,
   IconLogout,
@@ -25,15 +27,17 @@ import {
   IconSearch,
   IconSend,
   IconSettings,
+  IconSparkles,
   IconTrophy,
 } from '@tabler/icons-react';
 import { getAuth } from 'firebase/auth';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import gmAicgLogo from '@/assets/gm-ai-cg-logo-back-with-name-removebg-preview.png';
+import gmAicgLogowithblack from '@/assets/Black_bg_logo.png';
+import gmAicgLogowithWhite from '@/assets/white_bg_logo.png';
+import useGamification from '@/hooks/useGamification';
 import { LogoutButton } from '@/lib/auth/LogoutButton';
 import { useAuth } from '@/lib/auth/useAuth';
-import useGamification from '@/hooks/useGamification';
 import { useLoggedInUser } from '@/lib/auth/useLoggedInUser';
 
 import { MainNavigation } from './MainNavigation';
@@ -97,6 +101,8 @@ export function TopNavbar({ onChatClick, sidebarOpened = false, onSidebarToggle 
   };
 
   const isHiddenNavPage = location.pathname === '/login' || location.pathname === '/signup';
+  const compactSearchWidth = isMobile ? 64 : 400;
+  const navHeight = isMobile ? 64 : 56;
 
   if (isHiddenNavPage) {
     return null;
@@ -109,18 +115,25 @@ export function TopNavbar({ onChatClick, sidebarOpened = false, onSidebarToggle 
         component="nav"
         className={classes.navbar}
         style={{
-          height: 56,
-          backgroundColor: theme.colors[theme.primaryColor][4],
+          minHeight: navHeight,
+          backgroundColor:
+            colorScheme === 'dark' ? theme.colors[theme.primaryColor][8] : theme.colors[theme.primaryColor][4],
           display: 'flex',
           alignItems: 'center',
-          padding: `0 ${rem(16)}`,
-          gap: rem(16),
+          padding: isMobile ? `${rem(8)} ${rem(10)}` : `0 ${rem(16)}`,
+          gap: isMobile ? rem(8) : rem(16),
           position: 'relative',
           zIndex: 100,
+          overflow: 'hidden',
         }}
       >
         {/* Left Section: Hamburger + Logo + Title */}
-        <Group gap="md" align="center" wrap="nowrap" style={{ flex: 0, minWidth: 'auto' }}>
+        <Group
+          gap={isMobile ? 'xs' : 'md'}
+          align="center"
+          wrap="nowrap"
+          style={{ flex: 0, minWidth: 'auto', flexShrink: 0 }}
+        >
           {/* Hamburger Menu Button */}
           <Tooltip label="Menu">
             <UnstyledButton
@@ -129,7 +142,7 @@ export function TopNavbar({ onChatClick, sidebarOpened = false, onSidebarToggle 
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                padding: rem(8),
+                padding: isMobile ? rem(6) : rem(8),
                 borderRadius: theme.radius.sm,
                 color: 'white',
                 transition: 'background-color 200ms',
@@ -146,60 +159,92 @@ export function TopNavbar({ onChatClick, sidebarOpened = false, onSidebarToggle 
           </Tooltip>
 
           {/* Logo */}
-          <img
-            src={gmAicgLogo}
-            alt="GM-AICG"
-            style={{
-              maxHeight: 40,
-              height: 'auto',
-              objectFit: 'contain',
-              cursor: 'pointer',
-            }}
-            onClick={() => handleNavigate('/')}
-          />
+          {colorScheme === 'dark' ? (
+            <img
+              src={gmAicgLogowithWhite}
+              alt="GM-AICG"
+              style={{
+                maxHeight: isMobile ? 60 : 80,
+                height: 'auto',
+                objectFit: 'contain',
+                cursor: 'pointer',
+              }}
+              onClick={() => handleNavigate('/')}
+            />
+          ) : (
+            <img
+              src={gmAicgLogowithblack}
+              alt="GM-AICG"
+              style={{
+                maxHeight: isMobile ? 60 : 80,
+                height: 'auto',
+                objectFit: 'contain',
+                cursor: 'pointer',
+              }}
+              onClick={() => handleNavigate('/')}
+            />
+          )}
 
           {/* Title (hidden on mobile) */}
           {!isMobile && (
             <Box
+              onClick={() => handleNavigate('/')}
               style={{
+                cursor: 'pointer',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 2,
+                gap: rem(2),
+                minWidth: rem(140),
               }}
             >
-              <Box
+              <Group gap={0} align="flex-end" wrap="nowrap" style={{ lineHeight: 1 }}>
+                <Text
+                  fw={900}
+                  size="lg"
+                  c="#0099FF"
+                  style={{
+                    fontFamily: 'Poppins, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif',
+                    letterSpacing: '-0.5px',
+                    lineHeight: 1,
+                  }}
+                >
+                  GM
+                </Text>
+                <Text
+                  fw={900}
+                  size="lg"
+                  c="#FFA500"
+                  style={{
+                    fontFamily: 'Poppins, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif',
+                    letterSpacing: '-0.5px',
+                    lineHeight: 1,
+                  }}
+                >
+                  -AICG
+                </Text>
+              </Group>
+              <Text
+                fw={500}
+                size="sm"
+                c="rgba(255, 255, 255, 0.85)"
                 style={{
-                  color: 'white',
-                  fontSize: rem(14),
-                  fontWeight: 700,
+                  fontFamily: 'Poppins, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif',
+                  letterSpacing: '0.2px',
+                  lineHeight: 1.1,
                   whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                }}
-              >
-                GM-AICG
-              </Box>
-              <Box
-                style={{
-                  color: 'rgba(255, 255, 255, 0.85)',
-                  fontSize: rem(12),
-                  fontWeight: 400,
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
                 }}
               >
                 Career Guidance
-              </Box>
+              </Text>
             </Box>
           )}
         </Group>
 
         {/* Center Section: Search Box */}
-        <Box style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
-          <div style={{ width: '100%', maxWidth: 400 }}>
+        <Box style={{ flex: 1, minWidth: 0, display: 'flex', justifyContent: 'center' }}>
+          <div style={{ width: '100%', maxWidth: compactSearchWidth }}>
             <TextInput
-              placeholder="Search resources, services..."
+              placeholder={isMobile ? 'Search' : 'Search resources, services...'}
               leftSection={<IconSearch size={16} />}
               value={searchValue}
               onChange={(e) => setSearchValue(e.currentTarget.value)}
@@ -209,6 +254,8 @@ export function TopNavbar({ onChatClick, sidebarOpened = false, onSidebarToggle 
                   border: 'none',
                   borderRadius: theme.radius.md,
                   fontSize: rem(13),
+                  minHeight: isMobile ? rem(40) : undefined,
+                  paddingRight: isMobile ? rem(10) : undefined,
                 },
               }}
             />
@@ -216,207 +263,159 @@ export function TopNavbar({ onChatClick, sidebarOpened = false, onSidebarToggle 
         </Box>
 
         {/* Right Section: Chat, Settings, Feedback, Profile */}
-        <Group gap="xs" align="center" wrap="nowrap" style={{ flex: 0, justifyContent: 'flex-end' }}>
+        <Group
+          gap={isMobile ? 4 : 'xs'}
+          align="center"
+          wrap="nowrap"
+          style={{ flex: 0, justifyContent: 'flex-end', flexShrink: 0 }}
+        >
           {/* Chat AI Button */}
           <Tooltip label="Chat with AI">
             <Button
-              leftSection={<IconMessage size={18} />}
-              size="sm"
+              leftSection={<IconSparkles size={20} color={theme.colors[theme.primaryColor][6]} />}
+              size={isMobile ? 'compact-sm' : 'sm'}
               onClick={onChatClick}
               style={{
                 backgroundColor: 'white',
                 color: theme.colors[theme.primaryColor][6],
                 fontWeight: 600,
+                minWidth: isMobile ? rem(42) : undefined,
+                paddingInline: isMobile ? rem(10) : undefined,
               }}
             >
               {!isMobile && 'Chat AI'}
             </Button>
           </Tooltip>
 
-          {/* Notifications Icon */}
-          <Tooltip label="Notifications">
-            <ThemeIcon
-              variant="subtle"
-              color="white"
-              size="lg"
-              style={{
-                cursor: 'pointer',
-                transition: 'background-color 200ms',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }}
-            >
-              <IconBell size={20} stroke={1.5} />
-            </ThemeIcon>
-          </Tooltip>
+          {!isMobile && (
+            <>
+              {/* Streak Button */}
+              <Tooltip label="Current Streak">
+                <Button
+                  variant="subtle"
+                  size="sm"
+                  onClick={() => handleNavigate('/gamification')}
+                  style={{
+                    backgroundColor:
+                      colorScheme === 'dark'
+                        ? `${theme.colors[theme.primaryColor][8]}20`
+                        : theme.colors[theme.primaryColor][0],
+                    color:
+                      colorScheme === 'dark'
+                        ? theme.colors[theme.primaryColor][3]
+                        : theme.colors[theme.primaryColor][6],
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: rem(6),
+                    padding: `${rem(6)} ${rem(12)}`,
+                    borderRadius: theme.radius.md,
+                    border: `1px solid ${
+                      colorScheme === 'dark' ? theme.colors[theme.primaryColor][5] : theme.colors[theme.primaryColor][2]
+                    }`,
+                    cursor: 'pointer',
+                    transition: 'all 200ms',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor =
+                      colorScheme === 'dark'
+                        ? `${theme.colors[theme.primaryColor][8]}40`
+                        : theme.colors[theme.primaryColor][1];
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor =
+                      colorScheme === 'dark'
+                        ? `${theme.colors[theme.primaryColor][8]}20`
+                        : theme.colors[theme.primaryColor][0];
+                  }}
+                >
+                  <IconFlame size={16} />
+                  <Box style={{ fontSize: rem(12), fontWeight: 600 }}>{streak?.current_streak || 0}</Box>
+                  <Box style={{ fontSize: rem(10), opacity: 0.8 }}>streak</Box>
+                </Button>
+              </Tooltip>
 
-          {/* Settings Icon */}
-          <Tooltip label="Settings">
-            <ThemeIcon
-              variant="subtle"
-              color="white"
-              size="lg"
-              style={{
-                cursor: 'pointer',
-                transition: 'background-color 200ms',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }}
-              onClick={() => handleNavigate('/settings')}
-            >
-              <IconSettings size={20} stroke={1.5} />
-            </ThemeIcon>
-          </Tooltip>
+              {/* Points Button */}
+              <Tooltip label="Total Points">
+                <Button
+                  variant="subtle"
+                  size="sm"
+                  onClick={() => handleNavigate('/gamification')}
+                  style={{
+                    backgroundColor:
+                      colorScheme === 'dark'
+                        ? `${theme.colors[theme.primaryColor][8]}20`
+                        : theme.colors[theme.primaryColor][0],
+                    color:
+                      colorScheme === 'dark'
+                        ? theme.colors[theme.primaryColor][3]
+                        : theme.colors[theme.primaryColor][6],
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: rem(6),
+                    padding: `${rem(6)} ${rem(12)}`,
+                    borderRadius: theme.radius.md,
+                    border: `1px solid ${
+                      colorScheme === 'dark' ? theme.colors[theme.primaryColor][5] : theme.colors[theme.primaryColor][2]
+                    }`,
+                    cursor: 'pointer',
+                    transition: 'all 200ms',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor =
+                      colorScheme === 'dark'
+                        ? `${theme.colors[theme.primaryColor][8]}40`
+                        : theme.colors[theme.primaryColor][1];
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor =
+                      colorScheme === 'dark'
+                        ? `${theme.colors[theme.primaryColor][8]}20`
+                        : theme.colors[theme.primaryColor][0];
+                  }}
+                >
+                  <IconTrophy size={16} />
+                  <Box style={{ fontSize: rem(12), fontWeight: 600 }}>{points?.total_points || 0}</Box>
+                  <Box style={{ fontSize: rem(10), opacity: 0.8 }}>points</Box>
+                </Button>
+              </Tooltip>
+            </>
+          )}
 
-          {/* Feedback Icon */}
-          <Tooltip label="Feedback">
-            <ThemeIcon
-              variant="subtle"
-              color="white"
-              size="lg"
-              style={{
-                cursor: 'pointer',
-                transition: 'background-color 200ms',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }}
-            >
-              <IconSend size={20} stroke={1.5} />
-            </ThemeIcon>
-          </Tooltip>
+          {isMobile && (
+            <Menu shadow="md" width={220} position="bottom-end">
+              <Menu.Target>
+                <ThemeIcon variant="subtle" color="white" size="lg" style={{ cursor: 'pointer' }}>
+                  <IconDotsVertical size={20} stroke={1.5} />
+                </ThemeIcon>
+              </Menu.Target>
+              <Menu.Dropdown>
+                <Menu.Label>Quick access</Menu.Label>
+                <Menu.Item
+                  leftSection={<IconSettings style={{ width: rem(14), height: rem(14) }} />}
+                  onClick={() => handleNavigate('/settings')}
+                >
+                  Settings
+                </Menu.Item>
+                <Menu.Item leftSection={<IconSend style={{ width: rem(14), height: rem(14) }} />}>Feedback</Menu.Item>
+                <Menu.Item leftSection={<IconHelp style={{ width: rem(14), height: rem(14) }} />}>Help</Menu.Item>
+                <Menu.Divider />
+                <Menu.Item
+                  leftSection={<IconFlame style={{ width: rem(14), height: rem(14) }} />}
+                  onClick={() => handleNavigate('/gamification')}
+                >
+                  {streak?.current_streak || 0} day streak
+                </Menu.Item>
+                <Menu.Item
+                  leftSection={<IconTrophy style={{ width: rem(14), height: rem(14) }} />}
+                  onClick={() => handleNavigate('/gamification')}
+                >
+                  {points?.total_points || 0} points
+                </Menu.Item>
+              </Menu.Dropdown>
+            </Menu>
+          )}
 
-          {/* Help Icon */}
-           <Tooltip label="Help">
-             <ThemeIcon
-               variant="subtle"
-               color="white"
-               size="lg"
-               style={{
-                 cursor: 'pointer',
-                 transition: 'background-color 200ms',
-               }}
-               onMouseEnter={(e) => {
-                 e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-               }}
-               onMouseLeave={(e) => {
-                 e.currentTarget.style.backgroundColor = 'transparent';
-               }}
-             >
-               <IconHelp size={20} stroke={1.5} />
-             </ThemeIcon>
-           </Tooltip>
-
-           {/* Streak Button */}
-           <Tooltip label="Current Streak">
-             <Button
-               variant="subtle"
-               size="sm"
-               onClick={() => handleNavigate('/gamification')}
-               style={{
-                 backgroundColor: colorScheme === 'dark'
-                   ? `${theme.colors[theme.primaryColor][8]}20`
-                   : theme.colors[theme.primaryColor][0],
-                 color: colorScheme === 'dark'
-                   ? theme.colors[theme.primaryColor][3]
-                   : theme.colors[theme.primaryColor][6],
-                 display: 'flex',
-                 alignItems: 'center',
-                 gap: rem(6),
-                 padding: `${rem(6)} ${rem(12)}`,
-                 borderRadius: theme.radius.md,
-                 border: `1px solid ${
-                   colorScheme === 'dark'
-                     ? theme.colors[theme.primaryColor][8]
-                     : theme.colors[theme.primaryColor][2]
-                 }`,
-                 cursor: 'pointer',
-                 transition: 'all 200ms',
-               }}
-               onMouseEnter={(e) => {
-                 e.currentTarget.style.backgroundColor = colorScheme === 'dark'
-                   ? `${theme.colors[theme.primaryColor][8]}40`
-                   : theme.colors[theme.primaryColor][1];
-               }}
-               onMouseLeave={(e) => {
-                 e.currentTarget.style.backgroundColor = colorScheme === 'dark'
-                   ? `${theme.colors[theme.primaryColor][8]}20`
-                   : theme.colors[theme.primaryColor][0];
-               }}
-             >
-               <IconFlame size={16} />
-               <Box style={{ fontSize: rem(12), fontWeight: 600 }}>
-                 {streak?.current_streak || 0}
-               </Box>
-               {!isMobile && (
-                 <Box style={{ fontSize: rem(10), opacity: 0.8 }}>
-                   streak
-                 </Box>
-               )}
-             </Button>
-           </Tooltip>
-
-           {/* Points Button */}
-           <Tooltip label="Total Points">
-             <Button
-               variant="subtle"
-               size="sm"
-               onClick={() => handleNavigate('/gamification')}
-               style={{
-                 backgroundColor: colorScheme === 'dark'
-                   ? `${theme.colors[theme.primaryColor][8]}20`
-                   : theme.colors[theme.primaryColor][0],
-                 color: colorScheme === 'dark'
-                   ? theme.colors[theme.primaryColor][3]
-                   : theme.colors[theme.primaryColor][6],
-                 display: 'flex',
-                 alignItems: 'center',
-                 gap: rem(6),
-                 padding: `${rem(6)} ${rem(12)}`,
-                 borderRadius: theme.radius.md,
-                 border: `1px solid ${
-                   colorScheme === 'dark'
-                     ? theme.colors[theme.primaryColor][8]
-                     : theme.colors[theme.primaryColor][2]
-                 }`,
-                 cursor: 'pointer',
-                 transition: 'all 200ms',
-               }}
-               onMouseEnter={(e) => {
-                 e.currentTarget.style.backgroundColor = colorScheme === 'dark'
-                   ? `${theme.colors[theme.primaryColor][8]}40`
-                   : theme.colors[theme.primaryColor][1];
-               }}
-               onMouseLeave={(e) => {
-                 e.currentTarget.style.backgroundColor = colorScheme === 'dark'
-                   ? `${theme.colors[theme.primaryColor][8]}20`
-                   : theme.colors[theme.primaryColor][0];
-               }}
-             >
-               <IconTrophy size={16} />
-               <Box style={{ fontSize: rem(12), fontWeight: 600 }}>
-                 {points?.total_points || 0}
-               </Box>
-               {!isMobile && (
-                 <Box style={{ fontSize: rem(10), opacity: 0.8 }}>
-                   points
-                 </Box>
-               )}
-             </Button>
-           </Tooltip>
-
-           {/* Profile Menu */}
+          {/* Profile Menu */}
           <Menu shadow="md" width={200} position="bottom-end">
             <Menu.Target>
               <UnstyledButton
@@ -502,6 +501,26 @@ export function TopNavbar({ onChatClick, sidebarOpened = false, onSidebarToggle 
               </Menu.Item>
             </Menu.Dropdown>
           </Menu>
+          {/* Notifications Icon */}
+          <Tooltip label="Notifications">
+            <ThemeIcon
+              variant="subtle"
+              color="white"
+              size="lg"
+              style={{
+                cursor: 'pointer',
+                transition: 'background-color 200ms',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }}
+            >
+              <IconBell size={20} stroke={1.5} />
+            </ThemeIcon>
+          </Tooltip>
         </Group>
       </Box>
     </>

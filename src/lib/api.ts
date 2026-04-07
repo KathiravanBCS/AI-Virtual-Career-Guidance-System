@@ -140,6 +140,7 @@ import type {
   ActivityLogListResponse,
   GamificationDashboard,
 } from '@/features/gamification/types';
+import type { DashboardSummaryResponse } from '@/features/dashboard/types';
 import type { PermissionsResponse } from '@/lib/casl/types';
 import { mockUserService } from '@/services/mock/implementations/UserService';
 
@@ -499,6 +500,59 @@ const createServices = () => {
       // Health check
       health: {
         check: () => Promise.resolve({ status: 'ok' }),
+      },
+
+      // Dashboard services
+      dashboard: {
+        getSummaryMe: () =>
+          Promise.resolve({
+            generated_at: new Date().toISOString(),
+            user: {
+              id: 0,
+              first_name: 'User',
+              last_name: '',
+              profile_picture_url: null,
+              role_name: 'user',
+              last_login: null,
+              personality_type: null,
+              career_goal: null,
+              years_of_experience: 0,
+            },
+            kpis: {
+              total_points: 0,
+              current_streak: 0,
+              longest_streak: 0,
+              rank: 0,
+              weekly_points: 0,
+              monthly_points: 0,
+              total_learning_paths: 0,
+              active_learning_paths: 0,
+              completed_learning_paths: 0,
+              overall_completion_percentage: 0,
+              total_modules: 0,
+              completed_modules: 0,
+              in_progress_modules: 0,
+              total_recommendations: 0,
+              total_user_skills: 0,
+              total_skill_gaps: 0,
+              critical_skill_gaps: 0,
+              total_quizzes: 0,
+              total_flashcards: 0,
+              total_chat_sessions: 0,
+              active_chat_sessions: 0,
+              total_chat_messages: 0,
+            },
+            insights: {
+              top_career_match: null,
+              skill_alignment_avg: 0,
+              learning_status_breakdown: {},
+              skill_gap_breakdown: {},
+              activity_breakdown: {},
+            },
+            recent_activity: [],
+            quick_actions: [],
+            admin_stats: null,
+          } as DashboardSummaryResponse),
       },
     };
   }
@@ -899,6 +953,11 @@ const createServices = () => {
     health: {
       check: () => apiClient.get<{ status: string }>(API_ENDPOINTS.health),
     },
+
+    // Dashboard services
+    dashboard: {
+      getSummaryMe: () => apiClient.get<DashboardSummaryResponse>(API_ENDPOINTS.dashboard.summaryMe),
+    },
   };
 };
 
@@ -932,6 +991,7 @@ interface ApiInterface {
   gamification: typeof services.gamification;
   chat: typeof services.chat;
   health: typeof services.health;
+  dashboard: typeof services.dashboard;
 }
 
 // Export the API service

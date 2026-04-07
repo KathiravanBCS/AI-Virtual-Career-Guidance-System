@@ -1,36 +1,41 @@
 import React from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import {
+  Box,
+  Text,
+  ActionIcon,
+  ThemeIcon,
+  useMantineColorScheme,
+  useMantineTheme,
+} from '@mantine/core';
 import { IconStar, IconX } from '@tabler/icons-react';
-import { useMantineTheme, useMantineColorScheme } from '@mantine/core';
 import { useNotification } from '../context/NotificationContext';
 
 const NotificationContainer: React.FC = () => {
   const { notifications, removeNotification } = useNotification();
-  const theme = useMantineTheme();
   const { colorScheme } = useMantineColorScheme();
+  const theme = useMantineTheme();
+  const dark = colorScheme === 'dark';
+  const primary = theme.primaryColor;
 
-  // Get theme colors
-  const primaryColor = theme.colors[theme.primaryColor][6];
-  const primaryColorLight = theme.colors[theme.primaryColor][0];
-  const primaryColorDark = theme.colors[theme.primaryColor][8];
+  const p6 = theme.colors[primary][6];
+  const p5 = theme.colors[primary][5];
+  const p8 = theme.colors[primary][8];
+  const p9 = theme.colors[primary][9];
 
-  // Background gradient based on theme and color scheme
-  const bgGradient = colorScheme === 'dark'
-    ? `linear-gradient(135deg, ${primaryColorDark}cc 0%, ${theme.colors[theme.primaryColor][7]}cc 100%)`
-    : `linear-gradient(135deg, ${primaryColor} 0%, ${theme.colors[theme.primaryColor][5]} 100%)`;
+  const bgGradient = dark
+    ? `linear-gradient(135deg, ${p9}ee 0%, ${p8}ee 100%)`
+    : `linear-gradient(135deg, ${p6} 0%, ${p5} 100%)`;
 
-  // Border color based on color scheme
-  const borderColor = colorScheme === 'dark'
-    ? theme.colors[theme.primaryColor][6]
-    : theme.colors[theme.primaryColor][4];
-
-  // Text color
-  const textColor = colorScheme === 'dark'
-    ? theme.colors.gray[0]
-    : 'white';
+  const borderClr  = dark ? p6 : theme.colors[primary][4];
+  const textClr    = 'white';
+  const subTextClr = dark ? theme.colors.gray[2] : 'rgba(255,255,255,0.85)';
+  const shadowStr  = dark
+    ? `0 20px 60px rgba(0,0,0,0.6), 0 0 0 1px ${p8}80`
+    : `0 20px 60px rgba(0,0,0,0.18), 0 0 0 1px ${p5}40`;
 
   return (
-    <div
+    <Box
       style={{
         position: 'fixed',
         top: '50%',
@@ -38,165 +43,109 @@ const NotificationContainer: React.FC = () => {
         transform: 'translate(-50%, -50%)',
         zIndex: 9999,
         pointerEvents: 'none',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: theme.spacing.md,
       }}
     >
       <AnimatePresence>
         {notifications.map((notification) => (
           <motion.div
             key={notification.id}
-            initial={{ opacity: 0, scale: 0.8, y: -20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.8, y: 20 }}
-            transition={{
-              type: 'spring',
-              stiffness: 300,
-              damping: 25,
-              duration: 0.3,
-            }}
-            style={{
-              marginBottom: '1rem',
-              pointerEvents: 'auto',
-            }}
+            initial={{ opacity: 0, scale: 0.75, y: -30 }}
+            animate={{ opacity: 1, scale: 1,    y: 0   }}
+            exit  ={{ opacity: 0, scale: 0.75, y: 30  }}
+            transition={{ type: 'spring', stiffness: 320, damping: 26, duration: 0.35 }}
+            style={{ pointerEvents: 'auto', width: '100%' }}
           >
-            <div
+            <Box
               style={{
+                position: 'relative',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                gap: '1rem',
-                padding: '2rem 2.5rem',
+                gap: theme.spacing.sm,
+                padding: `${theme.spacing.xl} ${theme.spacing.xl}`,
                 background: bgGradient,
-                border: `2px solid ${borderColor}`,
-                borderRadius: '16px',
-                boxShadow: colorScheme === 'dark'
-                  ? `0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.1)`
-                  : `0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.3)`,
-                color: textColor,
-                minWidth: '320px',
-                maxWidth: '400px',
+                border: `1.5px solid ${borderClr}`,
+                borderRadius: theme.radius.xl,
+                boxShadow: shadowStr,
+                color: textClr,
+                minWidth: 300,
+                maxWidth: 380,
                 textAlign: 'center',
-                backdropFilter: 'blur(10px)',
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
               }}
             >
-              {/* Icon */}
+              {/* Star icon */}
               <motion.div
                 initial={{ scale: 0, rotate: -180 }}
                 animate={{ scale: 1, rotate: 0 }}
                 transition={{ type: 'spring', stiffness: 300, delay: 0.1 }}
-                style={{
-                  width: '60px',
-                  height: '60px',
-                  borderRadius: '50%',
-                  background: colorScheme === 'dark'
-                    ? `${theme.colors[theme.primaryColor][7]}40`
-                    : `${theme.colors[theme.primaryColor][0]}`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
               >
-                <IconStar
-                  size={32}
-                  color={primaryColor}
-                  fill={primaryColor}
-                  style={{ flexShrink: 0 }}
-                />
+                <ThemeIcon
+                  size={64}
+                  radius="xl"
+                  style={{
+                    background: 'rgba(255,255,255,0.18)',
+                    backdropFilter: 'blur(8px)',
+                  }}
+                >
+                  <IconStar size={32} stroke={1.8} fill="currentColor" />
+                </ThemeIcon>
               </motion.div>
 
-              {/* Text Content */}
-              <div style={{ flex: 1 }}>
-                <motion.p
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.2 }}
-                  style={{
-                    margin: '0 0 0.5rem 0',
-                    fontWeight: 600,
-                    fontSize: '1.1rem',
-                    color: textColor,
-                  }}
-                >
+              {/* Message */}
+              <motion.div
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                style={{ width: '100%' }}
+              >
+                <Text fw={700} size="lg" c={textClr} mb={4} lh={1.2}>
                   {notification.message}
-                </motion.p>
-                <motion.p
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.25 }}
-                  style={{
-                    margin: 0,
-                    fontSize: '0.95rem',
-                    color: colorScheme === 'dark'
-                      ? theme.colors.gray[2]
-                      : `rgba(255, 255, 255, 0.9)`,
-                    fontWeight: 500,
-                  }}
-                >
-                  +{notification.points} points
-                </motion.p>
-              </div>
+                </Text>
+                <Text fw={600} size="xl" c={textClr} style={{ fontVariantNumeric: 'tabular-nums' }}>
+                  +{notification.points} pts
+                </Text>
+              </motion.div>
 
-              {/* Motivational Message */}
-              <motion.p
+              {/* Motivational sub-text */}
+              <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.3 }}
-                style={{
-                  margin: 0,
-                  fontSize: '0.85rem',
-                  color: colorScheme === 'dark'
-                    ? theme.colors.gray[3]
-                    : `rgba(255, 255, 255, 0.85)`,
-                  fontStyle: 'italic',
-                }}
               >
-                Keep up the great work!
-              </motion.p>
+                <Text size="sm" c={subTextClr} fs="italic">
+                  Keep up the great work! 🎉
+                </Text>
+              </motion.div>
 
-              {/* Close Button */}
-              <motion.button
+              {/* Close button */}
+              <motion.div
                 initial={{ opacity: 0, scale: 0 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.35 }}
-                onClick={() => removeNotification(notification.id)}
-                style={{
-                  position: 'absolute',
-                  top: '0.75rem',
-                  right: '0.75rem',
-                  background: colorScheme === 'dark'
-                    ? `${theme.colors[theme.primaryColor][8]}40`
-                    : `rgba(255, 255, 255, 0.2)`,
-                  border: 'none',
-                  color: textColor,
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '50%',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  transition: 'all 0.2s ease',
-                  padding: 0,
-                }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget).style.background = colorScheme === 'dark'
-                    ? `${theme.colors[theme.primaryColor][8]}60`
-                    : `rgba(255, 255, 255, 0.3)`;
-                  (e.currentTarget).style.transform = 'scale(1.1)';
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget).style.background = colorScheme === 'dark'
-                    ? `${theme.colors[theme.primaryColor][8]}40`
-                    : `rgba(255, 255, 255, 0.2)`;
-                  (e.currentTarget).style.transform = 'scale(1)';
-                }}
+                style={{ position: 'absolute', top: 10, right: 10 }}
               >
-                <IconX size={18} stroke={2} />
-              </motion.button>
-            </div>
+                <ActionIcon
+                  variant="subtle"
+                  color="white"
+                  radius="xl"
+                  size="md"
+                  onClick={() => removeNotification(notification.id)}
+                  style={{ color: 'white', '--ai-hover': 'rgba(255,255,255,0.2)' }}
+                >
+                  <IconX size={16} stroke={2.5} />
+                </ActionIcon>
+              </motion.div>
+            </Box>
           </motion.div>
         ))}
       </AnimatePresence>
-    </div>
+    </Box>
   );
 };
 

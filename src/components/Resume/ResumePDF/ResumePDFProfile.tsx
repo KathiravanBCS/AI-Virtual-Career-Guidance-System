@@ -14,7 +14,10 @@ export const ResumePDFProfile = ({
   themeColor: string;
   isPDF: boolean;
 }) => {
-  const { name, email, phone, url, summary, location } = profile;
+  if (!profile) {
+    return null;
+  }
+  const { name = '', email = '', phone = '', url = '', summary = '', location = '' } = profile;
   const iconProps = { email, phone, location, url };
 
   return (

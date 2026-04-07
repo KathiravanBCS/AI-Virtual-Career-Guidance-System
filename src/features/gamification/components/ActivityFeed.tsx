@@ -1,13 +1,30 @@
-import React from 'react';
-import { useMantineColorScheme, useMantineTheme } from '@mantine/core';
+import React, { useMemo } from 'react';
+import {
+  Box,
+  Text,
+  Group,
+  Stack,
+  Badge,
+  Avatar,
+  Skeleton,
+  ScrollArea,
+  ThemeIcon,
+  Divider,
+  Button,
+  useMantineColorScheme,
+  useMantineTheme,
+  Paper,
+} from '@mantine/core';
 import {
   IconBook,
-  IconCheck,
+  IconCircleCheck,
   IconHelp,
   IconCards,
   IconConfetti,
-  IconDoorExit,
+  IconLogin,
   IconMedal,
+  IconActivity,
+  IconChevronRight,
 } from '@tabler/icons-react';
 import type { ActivityLog } from '../types';
 
@@ -18,25 +35,33 @@ interface ActivityFeedProps {
   limit?: number;
 }
 
-const ACTIVITY_ICONS: Record<string, React.ComponentType<{ size: number }>> = {
-  module_complete: IconBook,
-  quiz_pass: IconCheck,
-  quiz_attempt: IconHelp,
-  flashcard_read: IconCards,
-  flashcard_set_complete: IconConfetti,
-  daily_login: IconDoorExit,
-  assessment_complete: IconMedal,
+const ACTIVITY_CONFIG: Record<
+  string,
+  { icon: React.ComponentType<{ size?: number; stroke?: number }>; label: string; color: string }
+> = {
+  module_complete:       { icon: IconBook,          label: 'Completed Module',        color: 'blue'   },
+  quiz_pass:             { icon: IconCircleCheck,   label: 'Passed Quiz',             color: 'green'  },
+  quiz_attempt:          { icon: IconHelp,           label: 'Attempted Quiz',          color: 'yellow' },
+  flashcard_read:        { icon: IconCards,          label: 'Viewed Flashcard',        color: 'cyan'   },
+  flashcard_set_complete:{ icon: IconConfetti,       label: 'Completed Flashcard Set', color: 'violet' },
+  daily_login:           { icon: IconLogin,          label: 'Daily Login',             color: 'teal'   },
+  assessment_complete:   { icon: IconMedal,          label: 'Completed Assessment',    color: 'orange' },
 };
 
-const ACTIVITY_LABELS: Record<string, string> = {
-  module_complete: 'Completed Module',
-  quiz_pass: 'Passed Quiz',
-  quiz_attempt: 'Attempted Quiz',
-  flashcard_read: 'Viewed Flashcard',
-  flashcard_set_complete: 'Completed Flashcard Set',
-  daily_login: 'Daily Login',
-  assessment_complete: 'Completed Assessment',
-};
+function formatDate(dateString?: string): string {
+  if (!dateString) return 'Just now';
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+  if (diffMins < 1) return 'Just now';
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return date.toLocaleDateString();
+}
 
 const ActivityFeed: React.FC<ActivityFeedProps> = ({
   activities,
@@ -46,132 +71,191 @@ const ActivityFeed: React.FC<ActivityFeedProps> = ({
 }) => {
   const { colorScheme } = useMantineColorScheme();
   const theme = useMantineTheme();
+  const dark = colorScheme === 'dark';
+  const primary = theme.primaryColor;
 
-  const emptyMessageColor = colorScheme === 'dark'
-    ? theme.colors.gray[4]
-    : theme.colors.gray[5];
+  const displayActivities = useMemo(
+    () => activities?.slice(0, limit) ?? [],
+    [activities, limit]
+  );
+
+  const cardBg    = dark ? theme.colors.dark[7]  : theme.white;
+  const borderClr = dark ? theme.colors.dark[5]  : theme.colors.gray[2];
+  const subText   = dark ? theme.colors.gray[5]  : theme.colors.gray[5];
+  const titleClr  = dark ? theme.colors.gray[0]  : theme.colors.dark[7];
 
   if (loading) {
     return (
-      <div className={`activity-feed loading ${className}`}>
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="activity-skeleton">
-            <div className="skeleton skeleton-avatar" />
-            <div className="skeleton-content">
-              <div className="skeleton skeleton-text" style={{ width: '60%' }} />
-              <div className="skeleton skeleton-text" style={{ width: '40%' }} />
-            </div>
-          </div>
+      <Stack gap={0} className={className}>
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Box
+            key={i}
+            p="md"
+            style={{ borderBottom: `1px solid ${borderClr}` }}
+          >
+            <Group>
+              <Skeleton circle height={40} />
+              <Box flex={1}>
+                <Skeleton height={12} width="55%" mb={8} radius="sm" />
+                <Skeleton height={10} width="30%" radius="sm" />
+              </Box>
+              <Skeleton height={24} width={60} radius="xl" />
+            </Group>
+          </Box>
         ))}
-      </div>
+      </Stack>
     );
   }
-
-  const displayActivities = activities?.slice(0, limit) || [];
 
   if (!activities || activities.length === 0) {
     return (
-      <div className={`activity-feed empty ${className}`} style={{ padding: '2rem 1rem' }}>
-        <p className="empty-message" style={{ color: emptyMessageColor }}>No activities yet. Start learning to earn points!</p>
-      </div>
+      <Box
+        p="xl"
+        ta="center"
+        className={className}
+        style={{
+          background: dark
+            ? `linear-gradient(135deg, ${theme.colors.dark[7]}, ${theme.colors.dark[6]})`
+            : `linear-gradient(135deg, ${theme.colors.gray[0]}, ${theme.white})`,
+          borderRadius: theme.radius.md,
+        }}
+      >
+        <ThemeIcon size={56} radius="xl" variant="light" color={primary} mb="md">
+          <IconActivity size={28} stroke={1.5} />
+        </ThemeIcon>
+        <Text fw={600} size="md" c={titleClr} mb={4}>No activities yet</Text>
+        <Text size="sm" c={subText}>Start learning to earn points and see your progress here!</Text>
+      </Box>
     );
   }
 
-  const formatDate = (dateString?: string): string => {
-    if (!dateString) return 'Just now';
-    
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
-    
-    return date.toLocaleDateString();
-  };
-
-  const activityBgColor = colorScheme === 'dark'
-    ? theme.colors.dark[7]
-    : 'white';
-
-  const activityBorderColor = colorScheme === 'dark'
-    ? theme.colors.dark[5]
-    : theme.colors.gray[2];
-
-  const activityTitleColor = colorScheme === 'dark'
-    ? theme.colors.gray[0]
-    : theme.colors.dark[7];
-
-  const activityTimeColor = colorScheme === 'dark'
-    ? theme.colors.gray[4]
-    : theme.colors.gray[5];
-
   return (
-    <div className={`activity-feed ${className}`}>
-      <div className="feed-header">
-        <h3 className="feed-title" style={{ color: colorScheme === 'dark' ? theme.colors.gray[0] : theme.colors.dark[7] }}>Recent Activities</h3>
-        {activities && activities.length > limit && (
-          <p className="feed-subtitle" style={{ color: colorScheme === 'dark' ? theme.colors.gray[4] : theme.colors.gray[5] }}>Showing {limit} of {activities.length}</p>
-        )}
-      </div>
+    <Paper
+      radius="lg"
+      withBorder
+      className={className}
+      style={{
+        backgroundColor: cardBg,
+        borderColor: borderClr,
+        overflow: 'hidden',
+      }}
+    >
+      {/* Header */}
+      <Box
+        px="lg"
+        py="md"
+        style={{
+          borderBottom: `1px solid ${borderClr}`,
+          background: dark
+            ? `linear-gradient(90deg, ${theme.colors[primary][9]}22, transparent)`
+            : `linear-gradient(90deg, ${theme.colors[primary][0]}, transparent)`,
+        }}
+      >
+        <Group justify="space-between" align="center">
+          <Group gap="xs">
+            <ThemeIcon size={32} radius="md" variant="light" color={primary}>
+              <IconActivity size={16} stroke={2} />
+            </ThemeIcon>
+            <Text fw={700} size="md" c={titleClr}>Recent Activities</Text>
+          </Group>
+          {activities.length > limit && (
+            <Badge variant="light" color={primary} size="sm">
+              {limit} of {activities.length}
+            </Badge>
+          )}
+        </Group>
+      </Box>
 
-      <div className="activities-list">
-        {displayActivities.map((activity) => {
-          const IconComponent = ACTIVITY_ICONS[activity.activity_type];
-          return (
-          <div 
-            key={activity.id} 
-            className="activity-item"
-            style={{
-              backgroundColor: activityBgColor,
-              borderBottomColor: activityBorderColor,
-            }}
-          >
-            <div className="activity-icon" style={{ color: theme.colors[theme.primaryColor][6] }}>
-              {IconComponent ? <IconComponent size={24} /> : <IconMedal size={24} />}
-            </div>
+      {/* Feed List */}
+      <ScrollArea.Autosize mah={480}>
+        <Stack gap={0}>
+          {displayActivities.map((activity, idx) => {
+            const cfg = ACTIVITY_CONFIG[activity.activity_type];
+            const IconComp = cfg?.icon ?? IconMedal;
+            const iconColor = cfg?.color ?? primary;
+            const label = cfg?.label ?? activity.activity_type;
 
-            <div className="activity-content">
-              <p className="activity-title" style={{ color: activityTitleColor }}>
-                {ACTIVITY_LABELS[activity.activity_type] || activity.activity_type}
-              </p>
-              <p className="activity-time" style={{ color: activityTimeColor }}>
-                {formatDate(activity.created_at)}
-              </p>
-            </div>
+            return (
+              <React.Fragment key={activity.id}>
+                <Box
+                  px="lg"
+                  py="sm"
+                  style={{
+                    transition: 'background 150ms ease',
+                    cursor: 'default',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = dark
+                      ? theme.colors.dark[6]
+                      : theme.colors.gray[0];
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'transparent';
+                  }}
+                >
+                  <Group justify="space-between" align="center" wrap="nowrap">
+                    <Group gap="md" wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
+                      <ThemeIcon
+                        size={40}
+                        radius="xl"
+                        variant="light"
+                        color={iconColor}
+                        style={{ flexShrink: 0 }}
+                      >
+                        <IconComp size={20} stroke={1.8} />
+                      </ThemeIcon>
+                      <Box style={{ minWidth: 0 }}>
+                        <Text size="sm" fw={600} c={titleClr} truncate>
+                          {label}
+                        </Text>
+                        <Text size="xs" c={subText}>
+                          {formatDate(activity.created_at)}
+                        </Text>
+                      </Box>
+                    </Group>
+                    <Badge
+                      size="sm"
+                      variant="light"
+                      color={primary}
+                      radius="xl"
+                      style={{ flexShrink: 0 }}
+                    >
+                      +{activity.points_earned ?? 0} pts
+                    </Badge>
+                  </Group>
+                </Box>
+                {idx < displayActivities.length - 1 && (
+                  <Divider
+                    mx="lg"
+                    style={{ borderColor: borderClr }}
+                  />
+                )}
+              </React.Fragment>
+            );
+          })}
+        </Stack>
+      </ScrollArea.Autosize>
 
-            <div className="activity-points">
-              <span className="points-badge">
-                +{activity.points_earned || 0} pts
-              </span>
-            </div>
-          </div>
-        );
-        })}
-      </div>
-
-      {activities && activities.length > limit && (
-        <div className="feed-footer" style={{ 
-          backgroundColor: activityBgColor,
-          borderTopColor: activityBorderColor,
-        }}>
-          <button 
-            className="view-all-btn"
-            style={{
-              backgroundColor: theme.colors[theme.primaryColor][6],
-              color: 'white',
-            }}
+      {/* Footer */}
+      {activities.length > limit && (
+        <Box
+          px="lg"
+          py="sm"
+          style={{ borderTop: `1px solid ${borderClr}` }}
+        >
+          <Button
+            variant="light"
+            color={primary}
+            fullWidth
+            rightSection={<IconChevronRight size={16} />}
+            radius="md"
+            size="sm"
           >
             View All Activities
-          </button>
-        </div>
+          </Button>
+        </Box>
       )}
-    </div>
+    </Paper>
   );
 };
 

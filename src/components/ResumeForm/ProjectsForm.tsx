@@ -1,4 +1,7 @@
+import { useState } from 'react';
+
 import {
+  ActionIcon,
   Box,
   Button,
   Flex,
@@ -8,19 +11,22 @@ import {
   Text,
   Textarea,
   TextInput,
+  Tooltip,
   useMantineColorScheme,
   useMantineTheme,
 } from '@mantine/core';
-import { IconArrowDown, IconArrowUp, IconRobot, IconTrash } from '@tabler/icons-react';
+import { IconArrowDown, IconArrowUp, IconRobot, IconSparkles, IconTrash } from '@tabler/icons-react';
 
 import { FormHeader } from '@/components/ResumeForm/FormHeader';
+import { ResumeAIModal } from '@/components/ResumeForm/ResumeAIModal';
 import { useResumeStore } from '@/lib/store/useResumeStore';
 
 export const ProjectsForm = () => {
   const theme = useMantineTheme();
   const { colorScheme } = useMantineColorScheme();
   const { resume, changeProjects, deleteSectionInFormByIdx, moveSectionInForm, addSectionInForm } = useResumeStore();
-  const projects = resume.projects;
+  const projects = resume.projects ?? [];
+  const [aiModalIdx, setAIModalIdx] = useState<number | null>(null);
   const showDelete = projects.length > 1;
 
   return (
@@ -63,16 +69,31 @@ export const ProjectsForm = () => {
                     />
                   </Grid.Col>
                   <Grid.Col span={12}>
-                    <Textarea
-                      label="Description"
-                      placeholder="Bullet points (one per line)"
-                      minRows={3}
-                      value={descriptions?.join('\n') || ''}
-                      onChange={(e) => {
-                        const lines = e.currentTarget.value.split('\n').filter((line) => line.trim());
-                        changeProjects(idx, 'descriptions', lines);
-                      }}
-                    />
+                    <Box style={{ position: 'relative' }}>
+                      <Textarea
+                        label="Description"
+                        placeholder="Bullet points (one per line)"
+                        minRows={3}
+                        value={descriptions?.join('\n') || ''}
+                        onChange={(e) => {
+                          const lines = e.currentTarget.value.split('\n').filter((line) => line.trim());
+                          changeProjects(idx, 'descriptions', lines);
+                        }}
+                        styles={{ input: { paddingRight: '2.5rem' } }}
+                      />
+                      <Tooltip label="Generate with AI" position="left" withArrow>
+                        <ActionIcon
+                          variant="gradient"
+                          gradient={{ from: 'violet', to: 'blue', deg: 135 }}
+                          size="sm"
+                          style={{ position: 'absolute', top: '1.6rem', right: '0.5rem' }}
+                          onClick={() => setAIModalIdx(idx)}
+                          aria-label="Generate description with AI"
+                        >
+                          <IconSparkles size={14} />
+                        </ActionIcon>
+                      </Tooltip>
+                    </Box>
                   </Grid.Col>
                 </Grid>
 
@@ -127,6 +148,24 @@ export const ProjectsForm = () => {
           </Button>
         </Group>
       </FormHeader>
+
+      {/* AI Modal — per project item */}
+      {aiModalIdx !== null && (
+        <ResumeAIModal
+          opened={aiModalIdx !== null}
+          onClose={() => setAIModalIdx(null)}
+          fieldType="project"
+          context={{ projectName: projects[aiModalIdx]?.project }}
+          onApply={(generated) => {
+            if (aiModalIdx !== null) {
+              const lines = Array.isArray(generated)
+                ? generated
+                : generated.split('\n').filter((l) => l.trim());
+              changeProjects(aiModalIdx, 'descriptions', lines);
+            }
+          }}
+        />
+      )}
     </Stack>
   );
 };

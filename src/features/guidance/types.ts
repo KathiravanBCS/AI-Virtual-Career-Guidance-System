@@ -64,7 +64,7 @@ export interface LearningModuleInfo {
   title: string;
   description: string;
   estimated_time: string;
-  content: Record<string, unknown>;
+  content: any;
   module_order: number;
   completion_percentage: number;
   learning_module_code: string;

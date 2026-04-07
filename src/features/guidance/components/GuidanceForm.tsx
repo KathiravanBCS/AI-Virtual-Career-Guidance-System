@@ -1,7 +1,21 @@
 import { useEffect, useState } from 'react';
 
-import { Alert, Button, Center, Container, Group, Loader, Stack, Stepper, Text } from '@mantine/core';
-import { IconAlertCircle } from '@tabler/icons-react';
+import {
+  Alert,
+  Box,
+  Button,
+  Center,
+  Container,
+  Group,
+  Loader,
+  Paper,
+  Stack,
+  Stepper,
+  Text,
+  useMantineColorScheme,
+  useMantineTheme,
+} from '@mantine/core';
+import { IconAlertCircle, IconBriefcase, IconBulb, IconSparkles, IconUser } from '@tabler/icons-react';
 import { AnimatePresence, motion } from 'framer-motion';
 
 import { ListPageLayout } from '@/components/list-page/ListPageLayout';
@@ -13,7 +27,6 @@ import { generateLearningPath } from '../../../config/groq.config';
 import {
   alertVariants,
   containerVariants,
-  loadingVariants,
   pulseVariants,
   spinnerVariants,
   stepContentVariants,
@@ -46,85 +59,73 @@ interface LearningPathResult {
   type: 'career' | 'topic';
 }
 
+const STEPS = [
+  { label: 'Personal Info', description: 'Your basic details', icon: IconUser },
+  { label: 'Career Goals', description: 'Your aspirations', icon: IconBriefcase },
+  { label: 'Assessment', description: 'Discover your path', icon: IconBulb },
+  { label: 'Skills', description: 'Customise your path', icon: IconSparkles },
+];
+
 export function GuidanceForm() {
-   const [step, setStep] = useState(0);
-   const { user } = useAuth();
-   const { user: loggedInUser } = useLoggedInUser();
-   const createLearningGuidance = useCreateLearningGuidance();
-   const [formData, setFormData] = useState<FormData>({
-     name: user?.displayName || '',
-     age: '',
-     careerGoal: '',
-     currentSkills: [],
-     interests: [],
-     assessmentAnswers: {},
-   });
+  const [step, setStep] = useState(0);
+  const { user } = useAuth();
+  const { user: loggedInUser } = useLoggedInUser();
+  const createLearningGuidance = useCreateLearningGuidance();
+  const theme = useMantineTheme();
+  const { colorScheme } = useMantineColorScheme();
+  const isDark = colorScheme === 'dark';
 
-   const [skillInput, setSkillInput] = useState('');
-   const [interestInput, setInterestInput] = useState('');
-   const [loading, setLoading] = useState(false);
-   const [learningPath, setLearningPath] = useState<LearningPathResult | null>(null);
-   const [learningGuidanceId, setLearningGuidanceId] = useState<number | null>(null);
-   const [error, setError] = useState<string | null>(null);
+  const primary6 = theme.colors[theme.primaryColor][6];
 
-   // Auto-fill career goal from sessionStorage if available
-   useEffect(() => {
-     const prefilledGoal = sessionStorage.getItem('prefilledCareerGoal');
-     if (prefilledGoal) {
-       setFormData((prev) => ({
-         ...prev,
-         careerGoal: prefilledGoal,
-       }));
-       // Clear the sessionStorage after reading
-       sessionStorage.removeItem('prefilledCareerGoal');
-     }
-   }, []);
+  const [formData, setFormData] = useState<FormData>({
+    name: user?.displayName || '',
+    age: '',
+    careerGoal: '',
+    currentSkills: [],
+    interests: [],
+    assessmentAnswers: {},
+  });
+
+  const [skillInput, setSkillInput] = useState('');
+  const [interestInput, setInterestInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [learningPath, setLearningPath] = useState<LearningPathResult | null>(null);
+  const [learningGuidanceId, setLearningGuidanceId] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const prefilledGoal = sessionStorage.getItem('prefilledCareerGoal');
+    if (prefilledGoal) {
+      setFormData((prev) => ({ ...prev, careerGoal: prefilledGoal }));
+      sessionStorage.removeItem('prefilledCareerGoal');
+    }
+  }, []);
 
   const handleAddSkill = () => {
     if (skillInput.trim() && !formData.currentSkills.includes(skillInput)) {
-      setFormData((prev) => ({
-        ...prev,
-        currentSkills: [...prev.currentSkills, skillInput.trim()],
-      }));
+      setFormData((prev) => ({ ...prev, currentSkills: [...prev.currentSkills, skillInput.trim()] }));
       setSkillInput('');
     }
   };
 
-  const handleRemoveSkill = (skill: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      currentSkills: prev.currentSkills.filter((s) => s !== skill),
-    }));
-  };
+  const handleRemoveSkill = (skill: string) =>
+    setFormData((prev) => ({ ...prev, currentSkills: prev.currentSkills.filter((s) => s !== skill) }));
 
   const handleAddInterest = () => {
     if (interestInput.trim() && !formData.interests.includes(interestInput)) {
-      setFormData((prev) => ({
-        ...prev,
-        interests: [...prev.interests, interestInput.trim()],
-      }));
+      setFormData((prev) => ({ ...prev, interests: [...prev.interests, interestInput.trim()] }));
       setInterestInput('');
     }
   };
 
-  const handleRemoveInterest = (interest: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      interests: prev.interests.filter((i) => i !== interest),
-    }));
-  };
+  const handleRemoveInterest = (interest: string) =>
+    setFormData((prev) => ({ ...prev, interests: prev.interests.filter((i) => i !== interest) }));
 
   const handleGenerateLearningPath = async () => {
-    if (!formData.careerGoal.trim()) {
-      setError('Please enter your career goal');
-      return;
-    }
-
+    if (!formData.careerGoal.trim()) { setError('Please enter your career goal'); return; }
     setLoading(true);
     setError(null);
-
     try {
-      // Prepare payload for API
       const payload: CreateLearningGuidanceRequest = {
         name: formData.name,
         age: Number(formData.age),
@@ -134,20 +135,11 @@ export function GuidanceForm() {
         assessment_answers: formData.assessmentAnswers,
         user_id: loggedInUser?.id || 0,
       };
-
-      // Submit form data to API and get the response with guidance ID
       const guidanceResponse = await createLearningGuidance.mutateAsync(payload);
       const guidanceId = guidanceResponse?.id;
-
-      if (!guidanceId) {
-        console.error('Invalid guidance response:', guidanceResponse);
-        throw new Error('Failed to create learning guidance');
-      }
-
-      // Store the guidance ID for later use
+      if (!guidanceId) throw new Error('Failed to create learning guidance');
       setLearningGuidanceId(guidanceId);
 
-      // Generate learning path
       const modules = await generateLearningPath(formData.careerGoal, {
         type: 'career',
         detailed: true,
@@ -160,14 +152,9 @@ export function GuidanceForm() {
           assessmentAnswers: formData.assessmentAnswers,
         },
       });
-
-      setLearningPath({
-        modules,
-        type: 'career',
-      });
+      setLearningPath({ modules, type: 'career' });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to generate learning path');
-      console.error('Error generating learning path:', err);
     } finally {
       setLoading(false);
     }
@@ -175,28 +162,21 @@ export function GuidanceForm() {
 
   const canProceedStep1 = formData.name.trim() && formData.age && Number(formData.age) > 0;
   const canProceedStep2 = formData.careerGoal.trim().length > 10;
-  const canProceedStep3 = true; // Skills & Interests is optional
-  const canProceedStep4 = Object.keys(formData.assessmentAnswers).length >= 5; // At least 5 answers required
+  const canProceedStep4 = Object.keys(formData.assessmentAnswers).length >= 5;
+
+  const isNextDisabled =
+    (step === 0 && !canProceedStep1) ||
+    (step === 1 && !canProceedStep2);
 
   if (learningPath) {
     return (
       <Container size="fluid" py="sm">
-        <ListPageLayout
-          title="Your Personalized Learning Path"
-          // description={
-          //   <Text>
-          //     Based on your career goal: <span style={{ fontWeight: 600 }}>{formData.careerGoal}</span>
-          //   </Text>
-          // }
-        >
+        <ListPageLayout title="Your Personalised Learning Path">
           <LearningPathResults
             modules={learningPath.modules}
             careerGoal={formData.careerGoal}
             learningGuidanceId={learningGuidanceId || 0}
-            onBack={() => {
-              setLearningPath(null);
-              setStep(2);
-            }}
+            onBack={() => { setLearningPath(null); setStep(2); }}
           />
         </ListPageLayout>
       </Container>
@@ -207,20 +187,20 @@ export function GuidanceForm() {
     return (
       <Container size="fluid" py="sm">
         <ListPageLayout
-          title="Generating Learning Path"
+          title="Generating your path…"
           titleProps={{ fw: 700, size: 'h2' }}
-          description="Please wait while we create your personalized learning path..."
+          description="Hang tight while we craft your personalised learning journey."
         >
-          <motion.div initial="hidden" animate="visible" variants={loadingVariants}>
-            <Center py="xl">
+          <motion.div initial="hidden" animate="visible" variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}>
+            <Center py={80}>
               <Stack align="center" gap="md">
                 <motion.div variants={pulseVariants} animate="animate">
                   <motion.div variants={spinnerVariants} animate="animate">
-                    <Loader size="lg" />
+                    <Loader size="lg" color={theme.primaryColor} />
                   </motion.div>
                 </motion.div>
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-                  <Text>Generating your personalized learning path...</Text>
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+                  <Text c="dimmed" size="sm">Generating your personalised learning path…</Text>
                 </motion.div>
               </Stack>
             </Center>
@@ -235,133 +215,142 @@ export function GuidanceForm() {
       <ListPageLayout
         title="Career Guidance"
         titleProps={{ fw: 700, size: 'h2' }}
-        description="Let's create a personalized learning path for your career goals"
       >
         <motion.div initial="hidden" animate="visible" variants={containerVariants}>
-          <Stack gap="lg">
+          <Stack gap="xl">
+
+            {/* Stepper + content */}
             <motion.div variants={stepContentVariants}>
-              <Alert icon={<IconAlertCircle size={16} />} variant="light" radius="md" mb="lg">
-                <Text size="sm">Help us understand your goals. We'll create a personalized learning path for you.</Text>
-              </Alert>
-            </motion.div>
-
-            <motion.div variants={stepContentVariants}>
-              <Stepper active={step} onStepClick={setStep} size="lg">
-                <Stepper.Step label="Personal Info" description="Your basic details">
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key="step-0"
-                      initial="hidden"
-                      animate="visible"
-                      exit="exit"
-                      variants={stepContentVariants}
-                    >
-                      <PersonalInfoStep
-                        name={formData.name}
-                        age={formData.age}
-                        onNameChange={(value) => setFormData((prev) => ({ ...prev, name: value }))}
-                        onAgeChange={(value) => setFormData((prev) => ({ ...prev, age: value || '' }))}
-                      />
-                    </motion.div>
-                  </AnimatePresence>
-                </Stepper.Step>
-
-                <Stepper.Step label="Career Goals" description="Your aspirations">
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key="step-1"
-                      initial="hidden"
-                      animate="visible"
-                      exit="exit"
-                      variants={stepContentVariants}
-                    >
-                      <CareerGoalStep
-                        careerGoal={formData.careerGoal}
-                        onCareerGoalChange={(value) => setFormData((prev) => ({ ...prev, careerGoal: value }))}
-                      />
-                    </motion.div>
-                  </AnimatePresence>
-                </Stepper.Step>
-
-                <Stepper.Step label="Career Assessment" description="Discover your path">
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key="step-2"
-                      initial="hidden"
-                      animate="visible"
-                      exit="exit"
-                      variants={stepContentVariants}
-                    >
-                      <ModernAssessmentStep
-                        answers={formData.assessmentAnswers}
-                        onAnswersChange={(answers) => setFormData((prev) => ({ ...prev, assessmentAnswers: answers }))}
-                      />
-                    </motion.div>
-                  </AnimatePresence>
-                </Stepper.Step>
-
-                <Stepper.Step label="Skills & Interests" description="Customize your path">
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key="step-3"
-                      initial="hidden"
-                      animate="visible"
-                      exit="exit"
-                      variants={stepContentVariants}
-                    >
-                      <SkillsAndInterestsStep
-                        currentSkills={formData.currentSkills}
-                        interests={formData.interests}
-                        skillInput={skillInput}
-                        interestInput={interestInput}
-                        onSkillInputChange={setSkillInput}
-                        onInterestInputChange={setInterestInput}
-                        onAddSkill={handleAddSkill}
-                        onRemoveSkill={handleRemoveSkill}
-                        onAddInterest={handleAddInterest}
-                        onRemoveInterest={handleRemoveInterest}
-                      />
-                    </motion.div>
-                  </AnimatePresence>
-                </Stepper.Step>
-              </Stepper>
-            </motion.div>
-
-            <AnimatePresence>
-              {error && (
-                <motion.div variants={alertVariants} initial="hidden" animate="visible" exit="exit">
-                  <Alert
-                    icon={<IconAlertCircle size={16} />}
-                    color="red"
-                    mb="lg"
-                    withCloseButton
-                    onClose={() => setError(null)}
+              <Paper
+                withBorder
+                radius="xl"
+                p="xl"
+                style={{
+                  borderColor: isDark ? theme.colors.gray[7] : theme.colors.gray[2],
+                  backgroundColor: isDark ? theme.colors.dark[8] : theme.white,
+                }}
+              >
+                <Stack gap="xl">
+                  <Stepper
+                    active={step}
+                    onStepClick={setStep}
+                    size="sm"
+                    radius="md"
+                    color={theme.primaryColor}
+                    styles={{
+                      stepLabel: { fontWeight: 600, fontSize: 13 },
+                      stepDescription: { fontSize: 11 },
+                    }}
                   >
-                    {error}
-                  </Alert>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                    {STEPS.map((s, i) => (
+                      <Stepper.Step key={i} label={s.label} description={s.description} icon={<s.icon size={16} />}>
+                        <Box pt="lg">
+                          <AnimatePresence mode="wait">
+                            <motion.div
+                              key={`step-${i}`}
+                              initial="hidden"
+                              animate="visible"
+                              exit="exit"
+                              variants={stepContentVariants}
+                            >
+                              {i === 0 && (
+                                <PersonalInfoStep
+                                  name={formData.name}
+                                  age={formData.age}
+                                  onNameChange={(v) => setFormData((p) => ({ ...p, name: v }))}
+                                  onAgeChange={(v) => setFormData((p) => ({ ...p, age: v || '' }))}
+                                />
+                              )}
+                              {i === 1 && (
+                                <CareerGoalStep
+                                  careerGoal={formData.careerGoal}
+                                  onCareerGoalChange={(v) => setFormData((p) => ({ ...p, careerGoal: v }))}
+                                />
+                              )}
+                              {i === 2 && (
+                                <ModernAssessmentStep
+                                  answers={formData.assessmentAnswers}
+                                  onAnswersChange={(a) => setFormData((p) => ({ ...p, assessmentAnswers: a }))}
+                                />
+                              )}
+                              {i === 3 && (
+                                <SkillsAndInterestsStep
+                                  currentSkills={formData.currentSkills}
+                                  interests={formData.interests}
+                                  skillInput={skillInput}
+                                  interestInput={interestInput}
+                                  onSkillInputChange={setSkillInput}
+                                  onInterestInputChange={setInterestInput}
+                                  onAddSkill={handleAddSkill}
+                                  onRemoveSkill={handleRemoveSkill}
+                                  onAddInterest={handleAddInterest}
+                                  onRemoveInterest={handleRemoveInterest}
+                                />
+                              )}
+                            </motion.div>
+                          </AnimatePresence>
+                        </Box>
+                      </Stepper.Step>
+                    ))}
+                  </Stepper>
 
-            <motion.div variants={stepContentVariants}>
-              <Group justify="space-between" mt="lg">
-                <Button variant="default" onClick={() => setStep(step - 1)} disabled={step === 0}>
-                  Back
-                </Button>
+                  {/* Error */}
+                  <AnimatePresence>
+                    {error && (
+                      <motion.div variants={alertVariants} initial="hidden" animate="visible" exit="exit">
+                        <Alert
+                          icon={<IconAlertCircle size={16} />}
+                          color="red"
+                          radius="md"
+                          withCloseButton
+                          onClose={() => setError(null)}
+                        >
+                          {error}
+                        </Alert>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
-                {step === 3 ? (
-                  <Button onClick={handleGenerateLearningPath} loading={loading}>
-                    Generate Learning Path
-                  </Button>
-                ) : (
-                  <Button
-                    onClick={() => setStep(step + 1)}
-                    disabled={(step === 0 && !canProceedStep1) || (step === 1 && !canProceedStep2)}
+                  {/* Navigation */}
+                  <Group justify="space-between" pt="sm"
+                    style={{
+                      borderTop: `1px solid ${isDark ? theme.colors.gray[8] : theme.colors.gray[1]}`,
+                    }}
                   >
-                    Next
-                  </Button>
-                )}
-              </Group>
+                    <Button
+                      variant="default"
+                      radius="md"
+                      onClick={() => setStep(step - 1)}
+                      disabled={step === 0}
+                    >
+                      Back
+                    </Button>
+
+                    {step === 3 ? (
+                      <Button
+                        radius="md"
+                        color={theme.primaryColor}
+                        onClick={handleGenerateLearningPath}
+                        loading={loading}
+                        rightSection={<IconSparkles size={16} />}
+                        fw={600}
+                      >
+                        Generate Learning Path
+                      </Button>
+                    ) : (
+                      <Button
+                        radius="md"
+                        color={theme.primaryColor}
+                        onClick={() => setStep(step + 1)}
+                        disabled={isNextDisabled}
+                        fw={600}
+                      >
+                        Continue
+                      </Button>
+                    )}
+                  </Group>
+                </Stack>
+              </Paper>
             </motion.div>
           </Stack>
         </motion.div>

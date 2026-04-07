@@ -166,7 +166,7 @@ export const useResumeStore = create<ResumeStore>()(
 
       changeWorkExperiences: (idx, field, value) =>
         set((state) => {
-          const workExperiences = structuredClone(state.resume.workExperiences);
+          const workExperiences = structuredClone(state.resume.workExperiences || []);
           workExperiences[idx] = {
             ...workExperiences[idx],
             [field]: value,
@@ -181,7 +181,7 @@ export const useResumeStore = create<ResumeStore>()(
 
       changeEducations: (idx, field, value) =>
         set((state) => {
-          const educations = structuredClone(state.resume.educations);
+          const educations = structuredClone(state.resume.educations || []);
           educations[idx] = {
             ...educations[idx],
             [field]: value,
@@ -196,7 +196,7 @@ export const useResumeStore = create<ResumeStore>()(
 
       changeProjects: (idx, field, value) =>
         set((state) => {
-          const projects = structuredClone(state.resume.projects);
+          const projects = structuredClone(state.resume.projects || []);
           projects[idx] = {
             ...projects[idx],
             [field]: value,
@@ -222,7 +222,7 @@ export const useResumeStore = create<ResumeStore>()(
               },
             };
           } else {
-            const featuredSkills = structuredClone(state.resume.skills.featuredSkills);
+            const featuredSkills = structuredClone((state.resume.skills?.featuredSkills) || []);
             if (idx !== undefined) {
               featuredSkills[idx] = {
                 skill: skill || '',
@@ -243,7 +243,8 @@ export const useResumeStore = create<ResumeStore>()(
 
       changeCustom: (idx, field, value) =>
         set((state) => {
-          const custom = structuredClone(state.resume.custom);
+          const custom = structuredClone(state.resume.custom || { sections: [] });
+          if (!custom.sections) custom.sections = [];
           if (field === 'title') {
             custom.sections[idx].title = value as string;
           } else {
@@ -259,7 +260,8 @@ export const useResumeStore = create<ResumeStore>()(
 
       addCustomSection: () =>
         set((state) => {
-          const custom = structuredClone(state.resume.custom);
+          const custom = structuredClone(state.resume.custom || { sections: [] });
+          if (!custom.sections) custom.sections = [];
           custom.sections.push(structuredClone(initialCustomSection));
           return {
             resume: {
@@ -271,7 +273,8 @@ export const useResumeStore = create<ResumeStore>()(
 
       deleteCustomSection: (idx) =>
         set((state) => {
-          const custom = structuredClone(state.resume.custom);
+          const custom = structuredClone(state.resume.custom || { sections: [] });
+          if (!custom.sections) custom.sections = [];
           if (custom.sections.length > 1) {
             custom.sections.splice(idx, 1);
           }
@@ -285,7 +288,8 @@ export const useResumeStore = create<ResumeStore>()(
 
       moveCustomSection: (idx, direction) =>
         set((state) => {
-          const custom = structuredClone(state.resume.custom);
+          const custom = structuredClone(state.resume.custom || { sections: [] });
+          if (!custom.sections) custom.sections = [];
           const sections = custom.sections;
 
           if ((idx === 0 && direction === 'up') || (idx === sections.length - 1 && direction === 'down')) {
@@ -313,10 +317,13 @@ export const useResumeStore = create<ResumeStore>()(
         set((state) => {
           const resume = structuredClone(state.resume);
           if (form === 'workExperiences') {
+            if (!resume.workExperiences) resume.workExperiences = [];
             resume.workExperiences.push(structuredClone(initialWorkExperience));
           } else if (form === 'educations') {
+            if (!resume.educations) resume.educations = [];
             resume.educations.push(structuredClone(initialEducation));
           } else if (form === 'projects') {
+            if (!resume.projects) resume.projects = [];
             resume.projects.push(structuredClone(initialProject));
           }
           return { resume };

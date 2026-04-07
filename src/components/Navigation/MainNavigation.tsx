@@ -24,8 +24,10 @@ import { IconLayoutSidebar, IconLogout, IconSettings } from '@tabler/icons-react
 import { getAuth } from 'firebase/auth';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import gmAicgLogo from '@/assets/gm-ai-cg-logo-back-with-name-removebg-preview.png';
+import gmAicgLogowithblack from '@/assets/Black_bg_logo.png';
 import gmAicgLogowitname from '@/assets/gm-ai-cg-logo-back-with-name-removebg-preview.png';
+import gmAicgLogo from '@/assets/gm-ai-cg-logo.png';
+import gmAicgLogowithWhite from '@/assets/white_bg_logo.png';
 import { useNavigation } from '@/hooks/useNavigation';
 import { LogoutButton } from '@/lib/auth/LogoutButton';
 import { useAuth } from '@/lib/auth/useAuth';
@@ -318,33 +320,61 @@ export function MainNavigation({ collapsed, onToggle, onLinkClick }: MainNavigat
                 <IconLayoutSidebar style={{ width: rem(24), height: rem(24) }} stroke={1.5} />
               </div>
               <div className={classes.logo}>
-                <img
-                  src={gmAicgLogo}
-                  alt="GM-AICG"
-                  style={{
-                    maxHeight: 45,
-                    height: 'auto',
-                    objectFit: 'contain',
-                    cursor: 'pointer',
-                  }}
-                  onClick={() => handleNavigate('/')}
-                />
+                {colorScheme === 'dark' ? (
+                  <img
+                    src={gmAicgLogowithWhite}
+                    alt="GM-AICG"
+                    style={{
+                      maxHeight: 45,
+                      height: 'auto',
+                      objectFit: 'contain',
+                      cursor: 'pointer',
+                    }}
+                    onClick={() => handleNavigate('/')}
+                  />
+                ) : (
+                  <img
+                    src={gmAicgLogowithblack}
+                    alt="GM-AICG"
+                    style={{
+                      maxHeight: 45,
+                      height: 'auto',
+                      objectFit: 'contain',
+                      cursor: 'pointer',
+                    }}
+                    onClick={() => handleNavigate('/')}
+                  />
+                )}
               </div>
             </UnstyledButton>
           </Tooltip>
         ) : (
           <Group gap="sm" align="center" wrap="nowrap">
-            <img
-              src={gmAicgLogo}
-              alt="GM-AICG Career Guidance System"
-              style={{
-                maxHeight: 45,
-                height: 'auto',
-                objectFit: 'contain',
-                cursor: 'pointer',
-              }}
-              onClick={() => handleNavigate('/')}
-            />
+            {colorScheme === 'dark' ? (
+              <img
+                src={gmAicgLogowithWhite}
+                alt="GM-AICG"
+                style={{
+                  maxHeight: 45,
+                  height: 'auto',
+                  objectFit: 'contain',
+                  cursor: 'pointer',
+                }}
+                onClick={() => handleNavigate('/')}
+              />
+            ) : (
+              <img
+                src={gmAicgLogowithblack}
+                alt="GM-AICG"
+                style={{
+                  maxHeight: 45,
+                  height: 'auto',
+                  objectFit: 'contain',
+                  cursor: 'pointer',
+                }}
+                onClick={() => handleNavigate('/')}
+              />
+            )}
             <Box onClick={() => handleNavigate('/')} style={{ cursor: 'pointer' }}>
               <Group gap={0} align="flex-end" wrap="nowrap">
                 <Text

@@ -12,11 +12,19 @@ import {
   Stack,
   Text,
   TextInput,
+  ThemeIcon,
   Title,
+  useMantineColorScheme,
   useMantineTheme,
 } from '@mantine/core';
 import { motion } from 'framer-motion';
-import { IconSearch, IconAlertCircle } from '@tabler/icons-react';
+import {
+  IconSearch,
+  IconAlertCircle,
+  IconBriefcase,
+  IconAdjustments,
+  IconX,
+} from '@tabler/icons-react';
 
 import { ListPageLayout } from '@/components/list-page/ListPageLayout';
 import { useJobRecommendations } from '../api/useJobRecommendations';
@@ -35,6 +43,12 @@ const PRESET_SEARCHES = [
 
 export const JobRecommendationsPage: React.FC = () => {
   const theme = useMantineTheme();
+  const { colorScheme } = useMantineColorScheme();
+  const isDark = colorScheme === 'dark';
+
+  const primary = theme.colors[theme.primaryColor];
+  const primaryHex = primary?.[6] ?? '#ff9d54';
+
   const [inputQuery, setInputQuery] = useState('');
   const [submittedQuery, setSubmittedQuery] = useState('developer jobs in Chennai');
   const [selectedPreset, setSelectedPreset] = useState('developer jobs in Chennai');
@@ -48,7 +62,7 @@ export const JobRecommendationsPage: React.FC = () => {
   });
 
   const handleSearch = () => {
-    setSubmittedQuery(inputQuery);
+    if (inputQuery.trim()) setSubmittedQuery(inputQuery.trim());
   };
 
   const handlePresetSelect = (preset: string | null) => {
@@ -59,134 +73,188 @@ export const JobRecommendationsPage: React.FC = () => {
     }
   };
 
-  const handleInputChange = (query: string) => {
-    setInputQuery(query);
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') handleSearch();
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleSearch();
-    }
-  };
-
-  const jobs = jobsData?.data || [];
+  const jobs = jobsData?.data ?? [];
 
   return (
     <Container size="fluid" py="sm">
       <ListPageLayout
         title="Job Recommendations"
         titleProps={{ fw: 700, size: 'h2' }}
-        description="Discover job opportunities tailored to your career goals"
+        description="Discover opportunities tailored to your career goals"
         filters={
-          <Stack gap="md" style={{ width: '100%' }}>
-            <Group gap="md" wrap="wrap">
-              <Select
-                label="Quick Search"
-                placeholder="Select a role"
-                data={PRESET_SEARCHES}
-                value={selectedPreset}
-                onChange={handlePresetSelect}
-                searchable
-                allowDeselect={false}
-                style={{ flex: 1, minWidth: '200px' }}
-              />
+          <Stack gap="sm" style={{ width: '100%' }}>
+            {/* Row 1: Preset */}
+            <Group gap="sm" wrap="wrap" align="flex-end">
+              <Box style={{ flex: 1, minWidth: '200px' }}>
+                <Select
+                  label="Quick Search"
+                  placeholder="Select a role"
+                  data={PRESET_SEARCHES}
+                  value={selectedPreset}
+                  onChange={handlePresetSelect}
+                  searchable
+                  allowDeselect={false}
+                  leftSection={<IconAdjustments size={16} style={{ color: primaryHex }} />}
+                  styles={{
+                    label: { fontWeight: 600, fontSize: '13px', marginBottom: '4px' },
+                    input: {
+                      border: `1.5px solid ${isDark ? theme.colors.dark[4] : theme.colors.gray[3]}`,
+                      borderRadius: '10px',
+                      '&:focus': { borderColor: primaryHex },
+                    },
+                  }}
+                />
+              </Box>
             </Group>
-            <Group gap="md" wrap="wrap">
+
+            {/* Row 2: Custom search */}
+            <Group gap="sm" wrap="wrap" align="flex-end">
               <TextInput
-                placeholder="Search jobs..."
-                leftSection={<IconSearch size={18} />}
+                placeholder="Search any role, skill, or location…"
+                leftSection={<IconSearch size={16} style={{ color: primaryHex }} />}
                 value={inputQuery}
-                onChange={(e) => handleInputChange(e.currentTarget.value)}
-                onKeyPress={handleKeyPress}
+                onChange={(e) => setInputQuery(e.currentTarget.value)}
+                onKeyDown={handleKeyDown}
                 style={{ flex: 1, minWidth: '200px' }}
+                styles={{
+                  input: {
+                    border: `1.5px solid ${isDark ? theme.colors.dark[4] : theme.colors.gray[3]}`,
+                    borderRadius: '10px',
+                    '&:focus': { borderColor: primaryHex },
+                  },
+                }}
+                rightSection={
+                  inputQuery ? (
+                    <IconX
+                      size={14}
+                      style={{ color: theme.colors.gray[5], cursor: 'pointer' }}
+                      onClick={() => setInputQuery('')}
+                    />
+                  ) : null
+                }
               />
-              <Button onClick={handleSearch}>Search</Button>
+              <Button
+                onClick={handleSearch}
+                style={{
+                  background: `linear-gradient(135deg, ${primaryHex}, ${primary?.[4] ?? '#ffb87a'})`,
+                  color: 'white',
+                  fontWeight: 600,
+                  borderRadius: '10px',
+                  border: 'none',
+                  boxShadow: `0 4px 14px ${primaryHex}40`,
+                }}
+              >
+                Search
+              </Button>
             </Group>
           </Stack>
         }
       >
-        <Stack gap="lg">
+        <Stack gap="xl">
+          {/* Loading */}
           {isLoading && (
-            <Center style={{ minHeight: '400px' }}>
-              <Stack gap="md" align="center">
-                <Loader size="lg" />
-                <Text c="dimmed">Loading job opportunities...</Text>
+            <Center style={{ minHeight: '360px' }}>
+              <Stack align="center" gap="md">
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ repeat: Infinity, duration: 1.2, ease: 'linear' }}
+                >
+                  <ThemeIcon size={48} radius="xl" style={{ background: `${primaryHex}18`, color: primaryHex }}>
+                    <IconBriefcase size={24} />
+                  </ThemeIcon>
+                </motion.div>
+                <Text size="sm" c="dimmed" fw={500}>Finding job opportunities…</Text>
               </Stack>
             </Center>
           )}
 
+          {/* Error */}
           {error && (
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5 }}
+              transition={{ duration: 0.4 }}
             >
               <Box
-                p="md"
+                p="lg"
                 style={{
-                  background: `rgba(255, 0, 0, 0.05)`,
-                  border: `1px solid rgba(255, 0, 0, 0.3)`,
-                  borderRadius: '8px',
+                  background: isDark ? 'rgba(255,59,59,0.06)' : 'rgba(255,59,59,0.04)',
+                  border: '1px solid rgba(255,59,59,0.25)',
+                  borderRadius: '12px',
                 }}
               >
                 <Group gap="md">
-                  <IconAlertCircle size={24} color="red" />
-                  <Stack gap={0}>
-                    <Text fw={600} c="red">
-                      Error Loading Jobs
+                  <ThemeIcon size={40} radius="md" color="red" variant="light">
+                    <IconAlertCircle size={20} />
+                  </ThemeIcon>
+                  <div>
+                    <Text fw={700} size="sm" c="red">Error Loading Jobs</Text>
+                    <Text size="xs" c="dimmed" mt={2}>
+                      {error.message ?? 'Failed to load job recommendations. Please try again.'}
                     </Text>
-                    <Text size="sm" c="dimmed">
-                      {error.message ||
-                        'Failed to load job recommendations. Please try again or check your API key.'}
-                    </Text>
-                  </Stack>
+                  </div>
                 </Group>
               </Box>
             </motion.div>
           )}
 
+          {/* Results */}
           {!isLoading && !error && jobs.length > 0 && (
-            <>
-              <Text c="dimmed" size="sm">
-                Found {jobs.length} job opportunity
-                {jobs.length !== 1 ? 'ies' : ''} for "{submittedQuery}"
-              </Text>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.4 }}
+            >
+              <Group justify="space-between" align="center" mb="md">
+                <Text size="sm" c="dimmed" fw={500}>
+                  <Text span fw={700} style={{ color: primaryHex }}>{jobs.length}</Text>
+                  {' '}opportunit{jobs.length !== 1 ? 'ies' : 'y'} for{' '}
+                  <Text span fw={600}>"{submittedQuery}"</Text>
+                </Text>
+              </Group>
               <SimpleGrid cols={{ base: 1, md: 2, lg: 3 }} spacing="lg">
                 {jobs.map((job, index) => (
                   <JobCard key={job.job_id} job={job} index={index} />
                 ))}
               </SimpleGrid>
-            </>
+            </motion.div>
           )}
 
+          {/* Empty state */}
           {!isLoading && !error && jobs.length === 0 && (
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
               style={{
-                background: `rgba(255, 255, 255, 0.05)`,
-                backdropFilter: 'blur(10px)',
-                border: `1px solid rgba(255, 255, 255, 0.1)`,
+                background: isDark ? theme.colors.dark[6] : '#fafafa',
+                border: `1.5px dashed ${isDark ? theme.colors.dark[4] : theme.colors.gray[3]}`,
                 borderRadius: '16px',
-                padding: '48px 24px',
+                padding: '64px 24px',
                 textAlign: 'center',
               }}
             >
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-                <Title
-                  order={3}
-                  mb="xs"
-                  style={{
-                    color: theme.colors[theme.primaryColor]?.[6] || theme.primaryColor,
-                  }}
-                >
-                  No Jobs Found
-                </Title>
-                <Text mb="lg" style={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-                  Try a different search or select a preset job title
-                </Text>
-              </motion.div>
+              <ThemeIcon
+                size={56}
+                radius="xl"
+                style={{
+                  background: `${primaryHex}15`,
+                  color: primaryHex,
+                  margin: '0 auto 20px',
+                }}
+              >
+                <IconBriefcase size={28} />
+              </ThemeIcon>
+              <Title order={3} mb={6} style={{ color: primaryHex, fontWeight: 700 }}>
+                No Jobs Found
+              </Title>
+              <Text size="sm" c="dimmed">
+                Try a different search term or select a preset role above
+              </Text>
             </motion.div>
           )}
         </Stack>

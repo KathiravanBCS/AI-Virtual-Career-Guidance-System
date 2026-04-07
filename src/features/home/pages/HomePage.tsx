@@ -558,7 +558,7 @@ const HomePage: React.FC = () => {
 
   const handleStartLearning = () => {
     if (user) {
-      navigate('/dashboard');
+      navigate('/');
     } else {
       navigate('/auth/login');
     }
@@ -1347,7 +1347,7 @@ export const HomePage_Wrapped: React.FC = () => {
 
   useEffect(() => {
     if (!isLoading && user) {
-      navigate('/dashboard', { replace: true });
+      navigate('/', { replace: true });
     }
   }, [user, isLoading, navigate]);
 

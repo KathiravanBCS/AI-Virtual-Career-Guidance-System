@@ -24,7 +24,7 @@ export const EducationsForm = () => {
   const { resume, changeEducations, deleteSectionInFormByIdx, moveSectionInForm, addSectionInForm } = useResumeStore();
   const { showBulletPoints, changeShowBulletPoints } = useSettingsStore();
 
-  const educations = resume.educations;
+  const educations = resume.educations ?? [];
   const showDelete = educations.length > 1;
   const showBulletPointsForForm = showBulletPoints[form];
 

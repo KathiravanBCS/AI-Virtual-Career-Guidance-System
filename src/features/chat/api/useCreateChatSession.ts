@@ -11,13 +11,8 @@ export const useCreateChatSession = () => {
 
   return useMutation({
     mutationFn: (data: CreateChatSessionRequest) => api.chat.sessions.create(data),
-    onSuccess: (newSession: ChatSession) => {
+    onSuccess: (_newSession: ChatSession) => {
       queryClient.invalidateQueries({ queryKey: ['chat', 'sessions'] });
-      notifications.show({
-        title: 'Success',
-        message: 'Chat session created successfully',
-        color: 'green',
-      });
     },
     onError: (error: unknown) => {
       notifications.show({
